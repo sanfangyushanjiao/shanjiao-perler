@@ -409,7 +409,7 @@ function App() {
         {/* 标题 */}
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            拼豆图纸生成工具
+            山椒爱拼豆
           </h1>
           <p className="text-gray-600">上传图片，一键生成拼豆图纸</p>
         </header>
