@@ -70,7 +70,7 @@ function drawTitle(ctx: CanvasRenderingContext2D, width: number, height: number,
   ctx.fillStyle = '#FFFFFF';
   ctx.font = 'bold 36px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('拼豆图纸', width / 2, 45);
+  ctx.fillText('山椒爱拼豆', width / 2, 45);
 
   // 绘制品牌信息
   ctx.font = '24px sans-serif';
@@ -125,7 +125,8 @@ function calculateStatsHeight(colorStats: ColorStat[]): number {
   const rowHeight = 40;
   const columns = 3;
   const rows = Math.ceil(colorStats.length / columns);
-  return headerHeight + rows * rowHeight + 40;
+  const watermarkHeight = 50; // 添加水印区域高度
+  return headerHeight + rows * rowHeight + 40 + watermarkHeight;
 }
 
 /**
@@ -189,6 +190,14 @@ function drawStats(
     ctx.fillStyle = '#6B7280';
     ctx.fillText(`${stat.count} 颗`, x + colorBlockSize + 10, y + 28);
   });
+
+  // 绘制底部水印
+  const rows = Math.ceil(colorStats.length / columns);
+  const watermarkY = currentY + rows * rowHeight + 30;
+  ctx.fillStyle = '#9CA3AF';
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('@山椒爱拼豆', width / 2, watermarkY);
 }
 
 /**
