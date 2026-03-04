@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { ImageState, ConfigState, BrandName, MappedPixel, PixelationMode } from './types';
 import { loadPalette } from './core/colorUtils';
 import { calculateGridSize } from './core/pixelation';
@@ -60,7 +60,7 @@ function App() {
     },
   });
 
-  const handleImageLoad = useCallback((img: HTMLImageElement) => {
+  const handleImageLoad = useCallback(async (img: HTMLImageElement) => {
     const canvas = document.createElement('canvas');
     canvas.width = img.width;
     canvas.height = img.height;
@@ -77,8 +77,33 @@ function App() {
     });
 
     canvasRef.current = canvas;
-    processImage(canvas, N, M);
-  }, [configState.gridSize]);
+
+    // Process image after state is updated
+    setIsProcessing(true);
+    try {
+      let grid = await imageProcessor.pixelate(canvas, N, M, palette, configState.mode);
+      setRawGrid(grid);
+
+      if (configState.mergeThreshold > 0) {
+        grid = await imageProcessor.processMergeColors(grid, configState.mergeThreshold);
+      }
+
+      if (excludedColors.size > 0) {
+        grid = removeNoiseColors(grid, excludedColors, palette);
+      }
+
+      setImageState((prev) => ({
+        ...prev,
+        processedGrid: grid,
+        dimensions: { N, M },
+      }));
+    } catch (error) {
+      console.error('处理图像失败:', error);
+      alert('处理图像失败，请重试');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [configState.gridSize, configState.mode, configState.mergeThreshold, excludedColors, palette, imageProcessor]);
 
   const handleCSVLoad = useCallback(async (file: File) => {
     try {
@@ -108,40 +133,6 @@ function App() {
       setIsProcessing(false);
     }
   }, [palette]);
-
-  const processImage = useCallback(
-    async (canvas: HTMLCanvasElement, N: number, M: number) => {
-      setIsProcessing(true);
-
-      try {
-        // 使用 Web Worker 进行像素化，传入当前模式
-        let grid = await imageProcessor.pixelate(canvas, N, M, palette, configState.mode);
-        setRawGrid(grid);
-
-        // 颜色合并
-        if (configState.mergeThreshold > 0) {
-          grid = await imageProcessor.processMergeColors(grid, configState.mergeThreshold);
-        }
-
-        // 去除杂色
-        if (excludedColors.size > 0) {
-          grid = removeNoiseColors(grid, excludedColors, palette);
-        }
-
-        setImageState((prev) => ({
-          ...prev,
-          processedGrid: grid,
-          dimensions: { N, M },
-        }));
-      } catch (error) {
-        console.error('处理图像失败:', error);
-        alert('处理图像失败，请重试');
-      } finally {
-        setIsProcessing(false);
-      }
-    },
-    [palette, configState.mergeThreshold, configState.mode, excludedColors, imageProcessor]
-  );
 
   const handleGridSizeChange = useCallback((size: number) => {
     setTempGridSize(size);
@@ -177,7 +168,34 @@ function App() {
         imageState.originalImage.height,
         clampedGridSize
       );
-      processImage(canvasRef.current, N, M);
+
+      setIsProcessing(true);
+      (async () => {
+        try {
+          let grid = await imageProcessor.pixelate(canvasRef.current!, N, M, palette, configState.mode);
+          setRawGrid(grid);
+
+          if (clampedMergeThreshold > 0) {
+            grid = await imageProcessor.processMergeColors(grid, clampedMergeThreshold);
+          }
+
+          if (excludedColors.size > 0) {
+            grid = removeNoiseColors(grid, excludedColors, palette);
+          }
+
+          setImageState((prev) => ({
+            ...prev,
+            processedGrid: grid,
+            dimensions: { N, M },
+          }));
+        } catch (error) {
+          console.error('处理图像失败:', error);
+          alert('处理图像失败，请重试');
+        } finally {
+          setIsProcessing(false);
+        }
+      })();
+
       setRemoveBackground(false);
     } else if (thresholdChanged && rawGrid) {
       setIsProcessing(true);
@@ -211,14 +229,44 @@ function App() {
   }, []);
 
   const handleModeChange = useCallback((mode: PixelationMode) => {
+    // 先更新状态
     setConfigState((prev) => ({ ...prev, mode }));
+    // 不在这里直接调用 processImage，让 useEffect 监听 mode 变化后自动处理
+  }, []);
 
-    // 当模式改变时，如果有原始图像，重新处理
+  // 监听 mode 变化，重新处理图像
+  useEffect(() => {
     if (imageState.originalImage && canvasRef.current) {
       const { N, M } = imageState.dimensions;
-      processImage(canvasRef.current, N, M);
+
+      setIsProcessing(true);
+      (async () => {
+        try {
+          let grid = await imageProcessor.pixelate(canvasRef.current!, N, M, palette, configState.mode);
+          setRawGrid(grid);
+
+          if (configState.mergeThreshold > 0) {
+            grid = await imageProcessor.processMergeColors(grid, configState.mergeThreshold);
+          }
+
+          if (excludedColors.size > 0) {
+            grid = removeNoiseColors(grid, excludedColors, palette);
+          }
+
+          setImageState((prev) => ({
+            ...prev,
+            processedGrid: grid,
+            dimensions: { N, M },
+          }));
+        } catch (error) {
+          console.error('处理图像失败:', error);
+          alert('处理图像失败，请重试');
+        } finally {
+          setIsProcessing(false);
+        }
+      })();
     }
-  }, [imageState.originalImage, imageState.dimensions, processImage]);
+  }, [configState.mode]);
 
   const handleRemoveBackgroundChange = useCallback((remove: boolean) => {
     if (!imageState.processedGrid) return;

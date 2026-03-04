@@ -1,5 +1,6 @@
 import type { RgbColor, PaletteColor, MappedPixel, PixelationMode } from '../types';
-import { findClosestPaletteColor, isTransparent } from './colorUtils';
+import { findClosestPaletteColorLab, isTransparent } from './colorUtils';
+import { cartoonPreprocess } from './imagePreprocess';
 
 /**
  * 计算单元格的代表色
@@ -110,12 +111,19 @@ export function calculatePixelGrid(
   const imgWidth = canvas.width;
   const imgHeight = canvas.height;
 
+  // 获取原始图像数据
+  let imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
+
+  // 卡通模式：预处理图像
+  if (mode === 'cartoon') {
+    console.log('Applying cartoon preprocessing...');
+    imageData = cartoonPreprocess(imageData);
+    console.log('Cartoon preprocessing complete.');
+  }
+
   // 计算每个单元格的尺寸
   const cellWidth = imgWidth / N;
   const cellHeight = imgHeight / M;
-
-  // 获取图像数据
-  const imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
 
   // 创建结果网格
   const grid: MappedPixel[][] = [];
@@ -143,8 +151,8 @@ export function calculatePixelGrid(
       // 如果单元格是透明的，使用白色作为默认颜色
       const targetColor = representativeColor || { r: 255, g: 255, b: 255 };
 
-      // 找到最接近的调色板颜色
-      const paletteColor = findClosestPaletteColor(targetColor, palette);
+      // 使用 LAB 色彩空间找到最接近的调色板颜色
+      const paletteColor = findClosestPaletteColorLab(targetColor, palette);
 
       rowPixels.push({
         paletteColor,
