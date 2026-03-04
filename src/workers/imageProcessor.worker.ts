@@ -1,6 +1,5 @@
 import type { MappedPixel, PaletteColor, PixelationMode } from '../types';
-import { calculateCellRepresentativeColor } from '../core/pixelation';
-import { findClosestPaletteColor } from '../core/colorUtils';
+import { calculatePixelGrid } from '../core/pixelation';
 import { mergeColors } from '../utils/colorMerge';
 import { markExternalCells } from '../utils/backgroundRemoval';
 
@@ -26,47 +25,20 @@ function handlePixelate(data: {
   palette: PaletteColor[];
   mode: PixelationMode;
 }): MappedPixel[][] {
-  const { imageData, N, M, palette, mode } = data;
-  const cellWidth = imageData.width / N;
-  const cellHeight = imageData.height / M;
-  const grid: MappedPixel[][] = [];
+  const { imageData, width, height, N, M, palette, mode } = data;
 
-  for (let row = 0; row < M; row++) {
-    const rowPixels: MappedPixel[] = [];
-
-    for (let col = 0; col < N; col++) {
-      const startX = Math.floor(col * cellWidth);
-      const startY = Math.floor(row * cellHeight);
-      const endX = Math.floor((col + 1) * cellWidth);
-      const endY = Math.floor((row + 1) * cellHeight);
-
-      const representativeColor = calculateCellRepresentativeColor(
-        imageData,
-        startX,
-        startY,
-        endX - startX,
-        endY - startY,
-        mode
-      );
-
-      const targetColor = representativeColor || { r: 255, g: 255, b: 255 };
-      const paletteColor = findClosestPaletteColor(targetColor, palette);
-
-      rowPixels.push({
-        paletteColor,
-        position: { x: col, y: row },
-      });
-    }
-
-    // 发送进度更新
-    const progress = ((row + 1) / M) * 100;
-    self.postMessage({
-      type: 'progress',
-      progress,
-    } as WorkerResponse);
-
-    grid.push(rowPixels);
+  // 创建离屏 Canvas 用于处理
+  const canvas = new OffscreenCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Failed to get canvas context');
   }
+
+  // 将 ImageData 写入 Canvas
+  ctx.putImageData(imageData, 0, 0);
+
+  // 使用核心像素化函数（包含新的网格分块降采样逻辑）
+  const grid = calculatePixelGrid(canvas as any, N, M, palette, mode);
 
   return grid;
 }

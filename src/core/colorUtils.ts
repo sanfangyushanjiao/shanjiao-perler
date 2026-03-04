@@ -336,3 +336,29 @@ export function enhanceContrast(l: number, factor: number = 1.3): number {
   }
   return Math.max(0, Math.min(1, l));
 }
+
+/**
+ * 增强卡通颜色的饱和度和对比度
+ * 用于卡通模式，使颜色更鲜艳、对比度更高
+ * @param rgb - 原始 RGB 颜色
+ * @param saturationBoost - 饱和度增强因子（默认1.3）
+ * @param contrastBoost - 对比度增强因子（默认1.2）
+ * @returns 增强后的 RGB 颜色
+ */
+export function enhanceCartoonColor(
+  rgb: RgbColor,
+  saturationBoost: number = 1.3,
+  contrastBoost: number = 1.2
+): RgbColor {
+  // 转换到 HSL 色彩空间
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+  // 增强饱和度
+  const enhancedS = enhanceSaturation(hsl.s, saturationBoost);
+
+  // 增强对比度
+  const enhancedL = enhanceContrast(hsl.l, contrastBoost);
+
+  // 转回 RGB
+  return hslToRgb(hsl.h, enhancedS, enhancedL);
+}
