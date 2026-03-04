@@ -1,6 +1,6 @@
 import type { RgbColor, PaletteColor, MappedPixel, PixelationMode } from '../types';
-import { findClosestPaletteColorLab, isTransparent, enhanceCartoonColor } from './colorUtils';
-import { cartoonPreprocess, blockBasedDownsampling } from './imagePreprocess';
+import { findClosestPaletteColorLab, isTransparent } from './colorUtils';
+import { cartoonPreprocess } from './imagePreprocess';
 
 /**
  * 计算单元格的代表色
@@ -114,95 +114,53 @@ export function calculatePixelGrid(
   // 获取原始图像数据
   let imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
 
-  // 卡通模式：使用自定义降采样算法
+  // 卡通模式：预处理图像
   if (mode === 'cartoon') {
     console.log('Applying cartoon preprocessing...');
-
-    // 步骤1: 预处理（双边滤波、中值滤波、K-means）
     imageData = cartoonPreprocess(imageData);
-
-    // 步骤2: 网格分块降采样（保留黑色边缘、提取主导色）
-    console.log('Applying block-based downsampling...');
-    imageData = blockBasedDownsampling(
-      imageData,
-      N,
-      M,
-      0.15, // 极暗像素比例阈值 15%
-      50    // 极暗像素亮度阈值
-    );
-
     console.log('Cartoon preprocessing complete.');
-  } else {
-    // 真实模式：使用传统的单元格平均色算法
-    // 保留原有的 calculateCellRepresentativeColor 逻辑
   }
+
+  // 计算每个单元格的尺寸
+  const cellWidth = imgWidth / N;
+  const cellHeight = imgHeight / M;
 
   // 创建结果网格
   const grid: MappedPixel[][] = [];
 
-  if (mode === 'cartoon') {
-    // 卡通模式：直接从降采样后的图像提取颜色
-    for (let row = 0; row < M; row++) {
-      const rowPixels: MappedPixel[] = [];
+  // 遍历每个单元格
+  for (let row = 0; row < M; row++) {
+    const rowPixels: MappedPixel[] = [];
 
-      for (let col = 0; col < N; col++) {
-        const idx = (row * N + col) * 4;
-        let r = imageData.data[idx];
-        let g = imageData.data[idx + 1];
-        let b = imageData.data[idx + 2];
+    for (let col = 0; col < N; col++) {
+      const startX = Math.floor(col * cellWidth);
+      const startY = Math.floor(row * cellHeight);
+      const endX = Math.floor((col + 1) * cellWidth);
+      const endY = Math.floor((row + 1) * cellHeight);
 
-        // 增强饱和度和对比度（使卡通色彩更鲜艳）
-        const enhancedColor = enhanceCartoonColor({ r, g, b }, 1.3, 1.2);
+      // 计算单元格的代表色
+      const representativeColor = calculateCellRepresentativeColor(
+        imageData,
+        startX,
+        startY,
+        endX - startX,
+        endY - startY,
+        mode
+      );
 
-        // 使用 LAB 色彩空间找到最接近的调色板颜色
-        const paletteColor = findClosestPaletteColorLab(enhancedColor, palette);
+      // 如果单元格是透明的，使用白色作为默认颜色
+      const targetColor = representativeColor || { r: 255, g: 255, b: 255 };
 
-        rowPixels.push({
-          paletteColor,
-          position: { x: col, y: row },
-        });
-      }
+      // 使用 LAB 色彩空间找到最接近的调色板颜色
+      const paletteColor = findClosestPaletteColorLab(targetColor, palette);
 
-      grid.push(rowPixels);
+      rowPixels.push({
+        paletteColor,
+        position: { x: col, y: row },
+      });
     }
-  } else {
-    // 真实模式：使用原有的单元格代表色算法
-    const cellWidth = imgWidth / N;
-    const cellHeight = imgHeight / M;
 
-    for (let row = 0; row < M; row++) {
-      const rowPixels: MappedPixel[] = [];
-
-      for (let col = 0; col < N; col++) {
-        const startX = Math.floor(col * cellWidth);
-        const startY = Math.floor(row * cellHeight);
-        const endX = Math.floor((col + 1) * cellWidth);
-        const endY = Math.floor((row + 1) * cellHeight);
-
-        // 计算单元格的代表色（平均色）
-        const representativeColor = calculateCellRepresentativeColor(
-          imageData,
-          startX,
-          startY,
-          endX - startX,
-          endY - startY,
-          mode
-        );
-
-        // 如果单元格是透明的，使用白色作为默认颜色
-        const targetColor = representativeColor || { r: 255, g: 255, b: 255 };
-
-        // 使用 LAB 色彩空间找到最接近的调色板颜色
-        const paletteColor = findClosestPaletteColorLab(targetColor, palette);
-
-        rowPixels.push({
-          paletteColor,
-          position: { x: col, y: row },
-        });
-      }
-
-      grid.push(rowPixels);
-    }
+    grid.push(rowPixels);
   }
 
   return grid;
