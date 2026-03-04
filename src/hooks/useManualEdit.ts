@@ -42,61 +42,60 @@ export function useManualEdit(initialGrid: MappedPixel[][] | null) {
 
   // 应用编辑（保存到历史）
   const applyEdit = useCallback((newGrid: MappedPixel[][]) => {
+    setEditGrid(newGrid);
+
     setHistory(prevHistory => {
       const currentIndex = historyIndexRef.current;
       // 截断当前索引之后的历史
-      let newHistory = prevHistory.slice(0, currentIndex + 1);
+      const newHistory = prevHistory.slice(0, currentIndex + 1);
 
       // 添加新状态
       newHistory.push(deepCloneGrid(newGrid));
 
       // 限制历史记录最多50步
       if (newHistory.length > 50) {
-        newHistory = newHistory.slice(1); // 删除最早的记录
-        // 索引不变（因为删除了第一个，当前索引相对位置不变）
-        setHistoryIndex(newHistory.length - 1);
+        const trimmedHistory = newHistory.slice(1); // 删除最早的记录
+        // 由于删除了第一个，索引需要调整
+        setHistoryIndex(trimmedHistory.length - 1);
+        return trimmedHistory;
       } else {
         // 正常情况，索引+1
         setHistoryIndex(currentIndex + 1);
+        return newHistory;
       }
-
-      return newHistory;
     });
-
-    setEditGrid(newGrid);
   }, []);
 
   // 撤销
   const undo = useCallback(() => {
-    const currentIndex = historyIndexRef.current;
-    const currentHistory = historyRef.current;
-
-    if (currentIndex > 0) {
-      const newIndex = currentIndex - 1;
-      setHistoryIndex(newIndex);
-      setEditGrid(currentHistory[newIndex]);
-    }
+    setHistoryIndex(prevIndex => {
+      if (prevIndex > 0) {
+        const newIndex = prevIndex - 1;
+        const currentHistory = historyRef.current;
+        setEditGrid(deepCloneGrid(currentHistory[newIndex]));
+        return newIndex;
+      }
+      return prevIndex;
+    });
   }, []);
 
   // 重做
   const redo = useCallback(() => {
-    const currentIndex = historyIndexRef.current;
-    const currentHistory = historyRef.current;
-
-    if (currentIndex < currentHistory.length - 1) {
-      const newIndex = currentIndex + 1;
-      setHistoryIndex(newIndex);
-      setEditGrid(currentHistory[newIndex]);
-    }
+    setHistoryIndex(prevIndex => {
+      const currentHistory = historyRef.current;
+      if (prevIndex < currentHistory.length - 1) {
+        const newIndex = prevIndex + 1;
+        setEditGrid(deepCloneGrid(currentHistory[newIndex]));
+        return newIndex;
+      }
+      return prevIndex;
+    });
   }, []);
 
   // 退出编辑模式时重置
-  const toggleEditMode = useCallback((onExit?: (finalGrid: MappedPixel[][]) => void) => {
+  const toggleEditMode = useCallback(() => {
     if (isEditMode) {
-      // 退出编辑模式时，如果有回调则传递最终结果
-      if (onExit && editGrid) {
-        onExit(editGrid);
-      }
+      // 退出编辑模式
       setIsEditMode(false);
     } else {
       // 进入编辑模式

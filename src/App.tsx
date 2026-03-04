@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import type { ImageState, ConfigState, BrandName, MappedPixel, PixelationMode } from './types';
+import type { ImageState, ConfigState, BrandName, PixelationMode } from './types';
 import { loadPalette } from './core/colorUtils';
 import { calculateGridSize } from './core/pixelation';
 import { calculateColorStats } from './utils/colorStats';
@@ -269,41 +269,62 @@ function App() {
   }, [configState.mode]);
 
   const handleRemoveBackgroundChange = useCallback((remove: boolean) => {
-    if (!imageState.processedGrid) return;
-
     setRemoveBackground(remove);
     setIsProcessing(true);
 
     (async () => {
       try {
-        let grid = imageState.processedGrid!;
-
         if (remove) {
-          grid = await imageProcessor.processRemoveBackground(grid);
-          const externalCount = grid.flat().filter(p => p.isExternal).length;
-          const totalCount = grid.flat().length;
-          console.log(`背景移除：${externalCount}/${totalCount} 个单元格被标记为外部背景`);
+          // 应用背景移除
+          if (editState.isEditMode && editState.editGrid) {
+            // 在编辑模式中：对当前的 editGrid 应用背景移除
+            const gridWithBgRemoved = await imageProcessor.processRemoveBackground(editState.editGrid);
+            const externalCount = gridWithBgRemoved.flat().filter(p => p.isExternal).length;
+            const totalCount = gridWithBgRemoved.flat().length;
+            console.log(`背景移除：${externalCount}/${totalCount} 个单元格被标记为外部背景`);
+
+            // 作为一次编辑操作，添加到历史记录
+            editState.applyEdit(gridWithBgRemoved);
+          } else if (imageState.processedGrid) {
+            // 不在编辑模式：对 processedGrid 应用背景移除
+            const gridWithBgRemoved = await imageProcessor.processRemoveBackground(imageState.processedGrid);
+            const externalCount = gridWithBgRemoved.flat().filter(p => p.isExternal).length;
+            const totalCount = gridWithBgRemoved.flat().length;
+            console.log(`背景移除：${externalCount}/${totalCount} 个单元格被标记为外部背景`);
+
+            setImageState((prev) => ({
+              ...prev,
+              processedGrid: gridWithBgRemoved,
+            }));
+          }
         } else {
+          // 取消背景移除：恢复到原始数据
           if (rawGrid) {
-            grid = await imageProcessor.processMergeColors(rawGrid, configState.mergeThreshold);
+            let grid = await imageProcessor.processMergeColors(rawGrid, configState.mergeThreshold);
 
             if (excludedColors.size > 0) {
               grid = removeNoiseColors(grid, excludedColors, palette);
             }
+
+            if (editState.isEditMode) {
+              // 在编辑模式中：更新 editGrid 并添加到历史
+              editState.applyEdit(grid);
+            } else {
+              // 不在编辑模式：更新 processedGrid
+              setImageState((prev) => ({
+                ...prev,
+                processedGrid: grid,
+              }));
+            }
           }
         }
-
-        setImageState((prev) => ({
-          ...prev,
-          processedGrid: grid,
-        }));
       } catch (error) {
         console.error('处理失败:', error);
       } finally {
         setIsProcessing(false);
       }
     })();
-  }, [imageState.processedGrid, rawGrid, configState.mergeThreshold, excludedColors, palette, imageProcessor]);
+  }, [editState, imageState.processedGrid, rawGrid, configState.mergeThreshold, excludedColors, palette, imageProcessor]);
 
   const colorStats = useMemo(() => {
     if (!imageState.processedGrid) return [];
@@ -426,37 +447,43 @@ function App() {
 
   const handleToggleEditMode = useCallback(() => {
     if (editState.isEditMode && editState.editGrid) {
-      editState.setIsEditMode((finalGrid: MappedPixel[][]) => {
-        setImageState(prev => ({
-          ...prev,
-          processedGrid: finalGrid
-        }));
-      });
+      // 退出编辑模式：将 editGrid 的最终结果同步到 processedGrid
+      setImageState(prev => ({
+        ...prev,
+        processedGrid: editState.editGrid!
+      }));
+      editState.setIsEditMode();
     } else {
+      // 进入编辑模式
       editState.setIsEditMode();
     }
   }, [editState]);
 
   const handleExport = useCallback(() => {
-    const gridToExport = editState.isEditMode && editState.editGrid
-      ? editState.editGrid
-      : imageState.processedGrid;
+    // 优先使用编辑模式下的 editGrid，否则使用 processedGrid
+    // 这确保了无论用户是否在编辑模式，都导出当前实际显示的内容
+    const gridToExport = editState.editGrid || imageState.processedGrid;
 
-    if (!gridToExport) return;
+    if (!gridToExport) {
+      console.warn('没有可导出的网格数据');
+      return;
+    }
 
     const statsToExport = calculateColorStats(gridToExport, configState.brand);
     exportPatternImage(gridToExport, configState.brand, statsToExport);
-  }, [editState.isEditMode, editState.editGrid, imageState.processedGrid, configState.brand]);
+  }, [editState.editGrid, imageState.processedGrid, configState.brand]);
 
   const handleExportCSV = useCallback(() => {
-    const gridToExport = editState.isEditMode && editState.editGrid
-      ? editState.editGrid
-      : imageState.processedGrid;
+    // 优先使用编辑模式下的 editGrid，否则使用 processedGrid
+    const gridToExport = editState.editGrid || imageState.processedGrid;
 
-    if (!gridToExport) return;
+    if (!gridToExport) {
+      console.warn('没有可导出的网格数据');
+      return;
+    }
 
     exportToCSV(gridToExport, configState.brand);
-  }, [editState.isEditMode, editState.editGrid, imageState.processedGrid, configState.brand]);
+  }, [editState.editGrid, imageState.processedGrid, configState.brand]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-yellow-50">
