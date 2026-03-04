@@ -14,14 +14,15 @@ export function exportPatternImage(
 
   // 设置单元格大小
   const cellSize = 40;
+  const coordinateMargin = 30; // 坐标区域边距
   const padding = 40;
   const titleHeight = 100;
   const statsHeight = calculateStatsHeight(colorStats);
 
-  // 创建 canvas
+  // 创建 canvas（增加坐标区域空间）
   const canvas = document.createElement('canvas');
-  canvas.width = Math.max(N * cellSize + padding * 2, 800);
-  canvas.height = M * cellSize + padding * 2 + titleHeight + statsHeight;
+  canvas.width = Math.max(N * cellSize + padding * 2 + coordinateMargin * 2, 800);
+  canvas.height = M * cellSize + padding * 2 + titleHeight + statsHeight + coordinateMargin * 2;
 
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -33,13 +34,16 @@ export function exportPatternImage(
   // 绘制标题区域
   drawTitle(ctx, canvas.width, titleHeight, brand);
 
-  // 绘制网格
-  const offsetY = titleHeight + padding;
+  // 绘制网格（增加坐标边距）
+  const offsetY = titleHeight + padding + coordinateMargin;
   const offsetX = (canvas.width - N * cellSize) / 2;
   drawGrid(ctx, grid, brand, offsetX, offsetY, cellSize);
 
+  // 绘制坐标
+  drawCoordinates(ctx, N, M, offsetX, offsetY, cellSize, coordinateMargin);
+
   // 绘制统计信息
-  const statsY = offsetY + M * cellSize + padding;
+  const statsY = offsetY + M * cellSize + padding + coordinateMargin;
   drawStats(ctx, colorStats, statsY, canvas.width, padding);
 
   // 下载图片
@@ -116,6 +120,55 @@ function drawGrid(
     }
   }
 }
+
+/**
+ * 绘制参考坐标（四周）
+ */
+function drawCoordinates(
+  ctx: CanvasRenderingContext2D,
+  N: number,
+  M: number,
+  offsetX: number,
+  offsetY: number,
+  cellSize: number,
+  coordinateMargin: number
+) {
+  ctx.fillStyle = '#374151';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // 顶部列号（1, 2, 3...）
+  for (let col = 0; col < N; col++) {
+    const x = offsetX + col * cellSize + cellSize / 2;
+    const y = offsetY - coordinateMargin / 2;
+    ctx.fillText((col + 1).toString(), x, y);
+  }
+
+  // 底部列号（1, 2, 3...）
+  for (let col = 0; col < N; col++) {
+    const x = offsetX + col * cellSize + cellSize / 2;
+    const y = offsetY + M * cellSize + coordinateMargin / 2;
+    ctx.fillText((col + 1).toString(), x, y);
+  }
+
+  // 左侧行号（1, 2, 3...）
+  ctx.textAlign = 'right';
+  for (let row = 0; row < M; row++) {
+    const x = offsetX - coordinateMargin / 3;
+    const y = offsetY + row * cellSize + cellSize / 2;
+    ctx.fillText((row + 1).toString(), x, y);
+  }
+
+  // 右侧行号（1, 2, 3...）
+  ctx.textAlign = 'left';
+  for (let row = 0; row < M; row++) {
+    const x = offsetX + N * cellSize + coordinateMargin / 3;
+    const y = offsetY + row * cellSize + cellSize / 2;
+    ctx.fillText((row + 1).toString(), x, y);
+  }
+}
+
 
 /**
  * 计算统计区域高度
