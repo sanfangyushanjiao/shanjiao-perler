@@ -18,9 +18,8 @@ interface ControlPanelProps {
 const BRANDS: BrandName[] = ['MARD', 'COCO', '漫漫', '盼盼', '咪小窝'];
 
 const MODE_OPTIONS: { value: PixelationMode; label: string; description: string }[] = [
-  { value: 'average', label: '真实模式（平均色）', description: '计算单元格内所有像素的平均颜色' },
-  { value: 'dominant', label: '真实模式（主色调）', description: '选择单元格内出现最多的颜色' },
-  { value: 'cartoon', label: '卡通模式', description: '减少颜色数量，增强饱和度和对比度' },
+  { value: 'realistic', label: '真实模式', description: '保留照片的真实色彩和细节' },
+  { value: 'cartoon', label: '卡通模式', description: '使用主导色，适合动漫和卡通图片' },
 ];
 
 export default function ControlPanel({

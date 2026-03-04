@@ -3,7 +3,7 @@ import { calculateCellRepresentativeColor, calculateGridSize } from '../pixelati
 
 describe('pixelation', () => {
   describe('calculateCellRepresentativeColor', () => {
-    it('should calculate average color', () => {
+    it('should calculate average color in realistic mode', () => {
       // 创建一个 2x2 的测试图像数据（红色和蓝色）
       const imageData = new ImageData(2, 2);
       const data = imageData.data;
@@ -17,13 +17,13 @@ describe('pixelation', () => {
       // 像素 (1,1): 蓝色
       data[12] = 0; data[13] = 0; data[14] = 255; data[15] = 255;
 
-      const result = calculateCellRepresentativeColor(imageData, 0, 0, 2, 2, 'average');
+      const result = calculateCellRepresentativeColor(imageData, 0, 0, 2, 2, 'realistic');
 
       // 平均色应该是 (128, 0, 128)
       expect(result).toEqual({ r: 128, g: 0, b: 128 });
     });
 
-    it('should calculate dominant color', () => {
+    it('should calculate dominant color in cartoon mode', () => {
       const imageData = new ImageData(2, 2);
       const data = imageData.data;
 
@@ -33,7 +33,7 @@ describe('pixelation', () => {
       data[8] = 255; data[9] = 0; data[10] = 0; data[11] = 255;
       data[12] = 0; data[13] = 0; data[14] = 255; data[15] = 255;
 
-      const result = calculateCellRepresentativeColor(imageData, 0, 0, 2, 2, 'dominant');
+      const result = calculateCellRepresentativeColor(imageData, 0, 0, 2, 2, 'cartoon');
 
       // 主色调应该是红色
       expect(result).toEqual({ r: 255, g: 0, b: 0 });
@@ -51,7 +51,7 @@ describe('pixelation', () => {
         data[i + 3] = 0; // 透明
       }
 
-      const result = calculateCellRepresentativeColor(imageData, 0, 0, 2, 2, 'average');
+      const result = calculateCellRepresentativeColor(imageData, 0, 0, 2, 2, 'realistic');
       expect(result).toBeNull();
     });
 
@@ -65,7 +65,7 @@ describe('pixelation', () => {
       data[8] = 0; data[9] = 0; data[10] = 255; data[11] = 0; // 透明
       data[12] = 0; data[13] = 0; data[14] = 255; data[15] = 0; // 透明
 
-      const result = calculateCellRepresentativeColor(imageData, 0, 0, 2, 2, 'average');
+      const result = calculateCellRepresentativeColor(imageData, 0, 0, 2, 2, 'realistic');
 
       // 应该只计算不透明像素的平均值（红色）
       expect(result).toEqual({ r: 255, g: 0, b: 0 });

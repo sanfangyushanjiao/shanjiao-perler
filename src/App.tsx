@@ -31,7 +31,7 @@ function App() {
 
   const [configState, setConfigState] = useState<ConfigState>({
     gridSize: 50,
-    mode: 'average',
+    mode: 'realistic',
     brand: 'MARD',
     mergeThreshold: 0,
   });

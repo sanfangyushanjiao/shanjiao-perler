@@ -25,7 +25,7 @@ export interface MappedPixel {
 }
 
 // 像素化模式
-export type PixelationMode = 'dominant' | 'average' | 'cartoon';
+export type PixelationMode = 'realistic' | 'cartoon';
 
 // 支持的品牌
 export type BrandName = 'MARD' | 'COCO' | '漫漫' | '盼盼' | '咪小窝' | '小舞家' | '黄豆豆' | '优肯197色' | '优肯418色';
