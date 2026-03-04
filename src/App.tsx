@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import type { ImageState, ConfigState, BrandName, MappedPixel } from './types';
+import type { ImageState, ConfigState, BrandName, MappedPixel, PixelationMode } from './types';
 import { loadPalette } from './core/colorUtils';
 import { calculateGridSize } from './core/pixelation';
 import { calculateColorStats } from './utils/colorStats';
@@ -114,8 +114,8 @@ function App() {
       setIsProcessing(true);
 
       try {
-        // 使用 Web Worker 进行像素化
-        let grid = await imageProcessor.pixelate(canvas, N, M, palette, 'average');
+        // 使用 Web Worker 进行像素化，传入当前模式
+        let grid = await imageProcessor.pixelate(canvas, N, M, palette, configState.mode);
         setRawGrid(grid);
 
         // 颜色合并
@@ -140,7 +140,7 @@ function App() {
         setIsProcessing(false);
       }
     },
-    [palette, configState.mergeThreshold, excludedColors, imageProcessor]
+    [palette, configState.mergeThreshold, configState.mode, excludedColors, imageProcessor]
   );
 
   const handleGridSizeChange = useCallback((size: number) => {
@@ -209,6 +209,16 @@ function App() {
   const handleBrandChange = useCallback((brand: BrandName) => {
     setConfigState((prev) => ({ ...prev, brand }));
   }, []);
+
+  const handleModeChange = useCallback((mode: PixelationMode) => {
+    setConfigState((prev) => ({ ...prev, mode }));
+
+    // 当模式改变时，如果有原始图像，重新处理
+    if (imageState.originalImage && canvasRef.current) {
+      const { N, M } = imageState.dimensions;
+      processImage(canvasRef.current, N, M);
+    }
+  }, [imageState.originalImage, imageState.dimensions, processImage]);
 
   const handleRemoveBackgroundChange = useCallback((remove: boolean) => {
     if (!imageState.processedGrid) return;
@@ -503,6 +513,8 @@ function App() {
               onRemoveBackgroundChange={handleRemoveBackgroundChange}
               brand={configState.brand}
               onBrandChange={handleBrandChange}
+              mode={configState.mode}
+              onModeChange={handleModeChange}
               onApplyParameters={handleApplyParameters}
               disabled={!imageState.originalImage || isProcessing}
             />

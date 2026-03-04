@@ -1,4 +1,4 @@
-import type { BrandName } from '../../types';
+import type { BrandName, PixelationMode } from '../../types';
 
 interface ControlPanelProps {
   gridSize: number;
@@ -9,11 +9,19 @@ interface ControlPanelProps {
   onRemoveBackgroundChange: (remove: boolean) => void;
   brand: BrandName;
   onBrandChange: (brand: BrandName) => void;
+  mode: PixelationMode;
+  onModeChange: (mode: PixelationMode) => void;
   onApplyParameters: () => void;
   disabled?: boolean;
 }
 
 const BRANDS: BrandName[] = ['MARD', 'COCO', '漫漫', '盼盼', '咪小窝'];
+
+const MODE_OPTIONS: { value: PixelationMode; label: string; description: string }[] = [
+  { value: 'average', label: '真实模式（平均色）', description: '计算单元格内所有像素的平均颜色' },
+  { value: 'dominant', label: '真实模式（主色调）', description: '选择单元格内出现最多的颜色' },
+  { value: 'cartoon', label: '卡通模式', description: '减少颜色数量，增强饱和度和对比度' },
+];
 
 export default function ControlPanel({
   gridSize,
@@ -24,12 +32,36 @@ export default function ControlPanel({
   onRemoveBackgroundChange,
   brand,
   onBrandChange,
+  mode,
+  onModeChange,
   onApplyParameters,
   disabled = false,
 }: ControlPanelProps) {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
       <h2 className="text-2xl font-bold text-gray-800">控制面板</h2>
+
+      {/* 像素化模式选择 */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          像素化模式
+        </label>
+        <select
+          value={mode}
+          onChange={(e) => onModeChange(e.target.value as PixelationMode)}
+          disabled={disabled}
+          className="w-full py-2 px-4 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {MODE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <div className="text-xs text-gray-500 mt-2">
+          {MODE_OPTIONS.find(o => o.value === mode)?.description}
+        </div>
+      </div>
 
       {/* 网格尺寸 */}
       <div>

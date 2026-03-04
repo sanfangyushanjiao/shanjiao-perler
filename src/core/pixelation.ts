@@ -1,5 +1,5 @@
 import type { RgbColor, PaletteColor, MappedPixel, PixelationMode } from '../types';
-import { findClosestPaletteColor, isTransparent } from './colorUtils';
+import { findClosestPaletteColor, isTransparent, quantizeColor, rgbToHsl, hslToRgb, enhanceSaturation, enhanceContrast } from './colorUtils';
 
 /**
  * 计算单元格的代表色
@@ -75,6 +75,55 @@ export function calculateCellRepresentativeColor(
 
     const [r, g, b] = dominantColor.split(',').map(Number);
     return { r, g, b };
+  } else if (mode === 'cartoon') {
+    // 卡通模式：颜色量化 + 饱和度增强 + 对比度增强
+
+    // 步骤1：收集所有像素并进行颜色量化
+    const quantizedColorMap = new Map<string, number>();
+
+    for (let y = startY; y < startY + cellHeight; y++) {
+      for (let x = startX; x < startX + cellWidth; x++) {
+        if (x >= imageData.width || y >= imageData.height) continue;
+
+        const index = (y * imageData.width + x) * 4;
+        const r = imageData.data[index];
+        const g = imageData.data[index + 1];
+        const b = imageData.data[index + 2];
+        const a = imageData.data[index + 3];
+
+        if (isTransparent(a)) continue;
+
+        // 颜色量化到16个级别
+        const quantized = quantizeColor(r, g, b, 16);
+        const colorKey = `${quantized.r},${quantized.g},${quantized.b}`;
+        quantizedColorMap.set(colorKey, (quantizedColorMap.get(colorKey) || 0) + 1);
+      }
+    }
+
+    // 步骤2：找出量化后出现最多的颜色
+    let maxCount = 0;
+    let dominantColor = '';
+
+    for (const [color, count] of quantizedColorMap.entries()) {
+      if (count > maxCount) {
+        maxCount = count;
+        dominantColor = color;
+      }
+    }
+
+    const [r, g, b] = dominantColor.split(',').map(Number);
+
+    // 步骤3：转换到 HSL 空间
+    const hsl = rgbToHsl(r, g, b);
+
+    // 步骤4：增强饱和度（提高40%）
+    hsl.s = enhanceSaturation(hsl.s, 1.4);
+
+    // 步骤5：增强对比度（使用S曲线）
+    hsl.l = enhanceContrast(hsl.l, 1.3);
+
+    // 步骤6：转回 RGB
+    return hslToRgb(hsl.h, hsl.s, hsl.l);
   } else {
     // 返回平均颜色
     return {
