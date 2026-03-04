@@ -520,7 +520,6 @@ function App() {
             {colorStats.length > 0 && (
               <ColorStats
                 stats={colorStats}
-                removeBackground={removeBackground}
                 excludedColors={excludedColors}
                 onColorExclude={handleColorExclude}
               />

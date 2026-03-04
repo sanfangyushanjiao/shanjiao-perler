@@ -2,14 +2,12 @@ import type { ColorStat } from '../../types';
 
 interface ColorStatsProps {
   stats: ColorStat[];
-  removeBackground?: boolean;
   excludedColors?: Set<string>;
   onColorExclude?: (hex: string) => void;
 }
 
 export default function ColorStats({
   stats,
-  removeBackground = false,
   excludedColors = new Set(),
   onColorExclude
 }: ColorStatsProps) {
@@ -28,22 +26,6 @@ export default function ColorStats({
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">颜色统计</h2>
-
-      {removeBackground && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <div className="text-sm text-green-700 font-semibold">
-              已去除背景区域
-            </div>
-          </div>
-          <div className="text-xs text-gray-600 mt-1 ml-7">
-            统计中不包含外部背景
-          </div>
-        </div>
-      )}
 
       {excludedColors.size > 0 && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
