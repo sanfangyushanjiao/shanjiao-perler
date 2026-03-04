@@ -72,7 +72,8 @@ export function useManualEdit(initialGrid: MappedPixel[][] | null) {
       if (prevIndex > 0) {
         const newIndex = prevIndex - 1;
         const currentHistory = historyRef.current;
-        setEditGrid(deepCloneGrid(currentHistory[newIndex]));
+        // 历史记录中已经是深拷贝，直接使用即可，无需再次深拷贝
+        setEditGrid(currentHistory[newIndex]);
         return newIndex;
       }
       return prevIndex;
@@ -85,7 +86,8 @@ export function useManualEdit(initialGrid: MappedPixel[][] | null) {
       const currentHistory = historyRef.current;
       if (prevIndex < currentHistory.length - 1) {
         const newIndex = prevIndex + 1;
-        setEditGrid(deepCloneGrid(currentHistory[newIndex]));
+        // 历史记录中已经是深拷贝，直接使用即可，无需再次深拷贝
+        setEditGrid(currentHistory[newIndex]);
         return newIndex;
       }
       return prevIndex;

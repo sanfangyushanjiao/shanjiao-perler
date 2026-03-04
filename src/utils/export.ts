@@ -101,6 +101,21 @@ function drawGrid(
       const x = offsetX + col * cellSize;
       const y = offsetY + row * cellSize;
 
+      // 跳过外部背景区域，绘制为透明/空白
+      if (pixel.isExternal) {
+        // 绘制浅灰色背景表示这是被移除的背景区域
+        ctx.fillStyle = '#F3F4F6';
+        ctx.fillRect(x, y, cellSize, cellSize);
+
+        // 绘制虚线边框表示这是背景
+        ctx.strokeStyle = '#D1D5DB';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]); // 虚线
+        ctx.strokeRect(x, y, cellSize, cellSize);
+        ctx.setLineDash([]); // 恢复实线
+        continue; // 跳过色号绘制
+      }
+
       // 绘制颜色方块
       ctx.fillStyle = pixel.paletteColor.hex;
       ctx.fillRect(x, y, cellSize, cellSize);
