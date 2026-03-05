@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase 配置向导 - 山椒爱拼豆</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px;
+        }
+        .step {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        .step-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .step-content {
+            margin-left: 55px;
+            color: #666;
+            line-height: 1.8;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: "Consolas", monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            margin: 10px 5px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: "Consolas", monospace;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .checklist {
+            list-style: none;
+            margin: 15px 0;
+        }
+        .checklist li {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            padding-left: 35px;
+            position: relative;
+        }
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 10px;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .screenshot {
+            max-width: 100%;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        #configForm {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        .progress {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Supabase 配置向导</h1>
+            <p>山椒爱拼豆激活码系统</p>
+        </div>
+
+        <div class="content">
+            <div class="progress">
+                <div class="progress-bar" id="progressBar" style="width: 0%">0%</div>
+            </div>
+
+            <!-- 步骤 1 -->
+            <div class="step" id="step1">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    访问 Supabase 并注册
+                </div>
+                <div class="step-content">
+                    <p>首先，你需要创建一个 Supabase 账号（完全免费）</p>
+
+                    <div class="highlight">
+                        <strong>🚀 推荐方式：使用 GitHub 账号登录（最快）</strong>
+                        <br>只需1次点击，无需填写表单
+                    </div>
+
+                    <a href="https://supabase.com/dashboard" target="_blank" class="btn">
+                        🌐 打开 Supabase 官网
+                    </a>
+
+                    <ul class="checklist">
+                        <li>点击上方按钮，在新标签页打开 Supabase</li>
+                        <li>如果未登录，点击 "Sign Up" 注册</li>
+                        <li>选择 "Continue with GitHub" 或使用邮箱注册</li>
+                        <li>完成注册并登录到控制台</li>
+                    </ul>
+
+                    <button class="btn btn-success" onclick="completeStep(1)">✅ 我已完成注册</button>
+                </div>
+            </div>
+
+            <!-- 步骤 2 -->
+            <div class="step" id="step2" style="display:none">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    创建新项目
+                </div>
+                <div class="step-content">
+                    <p>在 Supabase 控制台创建一个新项目</p>
+
+                    <div class="highlight">
+                        <strong>📋 请按以下信息填写：</strong>
+                    </div>
+
+                    <div class="code">
+Name: shanjiao-perler
+Database Password: [请设置一个强密码]
+Region: Southeast Asia (Singapore) - 推荐，速度最快
+Pricing Plan: Free - 免费版即可
+                    </div>
+
+                    <div class="warning">
+                        <strong>⚠️ 重要提示：</strong><br>
+                        请记住你设置的数据库密码！虽然后续不常用，但找回较麻烦。
+                    </div>
+
+                    <ul class="checklist">
+                        <li>点击绿色的 "New Project" 按钮</li>
+                        <li>选择或创建一个 Organization（组织）</li>
+                        <li>填写项目名称：shanjiao-perler</li>
+                        <li>设置数据库密码并记录</li>
+                        <li>选择区域：Southeast Asia (Singapore)</li>
+                        <li>点击 "Create new project"</li>
+                        <li>等待 2-3 分钟，项目创建完成</li>
+                    </ul>
+
+                    <button class="btn btn-success" onclick="completeStep(2)">✅ 项目已创建完成</button>
+                </div>
+            </div>
+
+            <!-- 步骤 3 -->
+            <div class="step" id="step3" style="display:none">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    执行数据库脚本
+                </div>
+                <div class="step-content">
+                    <p>创建激活码系统所需的数据库表</p>
+
+                    <div class="highlight">
+                        <strong>📝 操作步骤：</strong>
+                    </div>
+
+                    <ul class="checklist">
+                        <li>在 Supabase 左侧菜单，点击 "SQL Editor"</li>
+                        <li>点击 "+ New query" 创建新查询</li>
+                        <li>点击下方按钮，复制 SQL 脚本</li>
+                        <li>粘贴到 SQL 编辑器中</li>
+                        <li>点击右下角 "Run" 按钮执行</li>
+                        <li>看到 "Success. No rows returned" 表示成功</li>
+                    </ul>
+
+                    <button class="btn" onclick="copySQL()">📋 复制 SQL 脚本</button>
+                    <a href="../database/schema.sql" target="_blank" class="btn">📄 查看 SQL 文件</a>
+
+                    <div class="code" id="sqlScript" style="max-height: 300px; overflow-y: auto;">
+-- 点击上方按钮复制此脚本
+-- 或者打开 database/schema.sql 文件
+                    </div>
+
+                    <div class="success" id="sqlSuccess" style="display:none">
+                        <strong>✅ SQL 脚本已复制到剪贴板！</strong><br>
+                        现在粘贴到 Supabase SQL Editor 并点击 Run
+                    </div>
+
+                    <button class="btn btn-success" onclick="completeStep(3)">✅ SQL 已成功执行</button>
+                </div>
+            </div>
+
+            <!-- 步骤 4 -->
+            <div class="step" id="step4" style="display:none">
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    获取 API 密钥
+                </div>
+                <div class="step-content">
+                    <p>获取连接数据库所需的密钥</p>
+
+                    <div class="highlight">
+                        <strong>🔑 在 Supabase 控制台：</strong>
+                    </div>
+
+                    <ul class="checklist">
+                        <li>点击左侧菜单底部的 "Settings"（齿轮图标）</li>
+                        <li>点击 "API" 标签</li>
+                        <li>找到以下三项信息</li>
+                    </ul>
+
+                    <form id="configForm" onsubmit="saveConfig(event)">
+                        <div class="input-group">
+                            <label>📍 Project URL (类似: https://xxxxx.supabase.co)</label>
+                            <input type="text" id="supabaseUrl" placeholder="https://xxxxx.supabase.co" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>🔓 anon public (公开密钥，以 eyJhbGc 开头)</label>
+                            <input type="text" id="anonKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>🔐 service_role (私密密钥，需要点击眼睛图标显示)</label>
+                            <input type="text" id="serviceKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required>
+                            <small style="color: #dc3545;">⚠️ 这是私密密钥，请妥善保管，不要泄露</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-success" style="width: 100%; font-size: 20px;">
+                            💾 保存配置并生成激活码
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 步骤 5 -->
+            <div class="step" id="step5" style="display:none">
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    配置已保存
+                </div>
+                <div class="step-content">
+                    <div class="success">
+                        <strong>🎉 恭喜！Supabase 配置完成</strong>
+                    </div>
+
+                    <p>配置信息已保存到 <code>.env</code> 文件</p>
+
+                    <div class="highlight">
+                        <strong>✅ 已完成：</strong>
+                        <ul class="checklist">
+                            <li>Supabase 项目创建</li>
+                            <li>数据库表创建</li>
+                            <li>API 密钥配置</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning">
+                        <strong>📝 下一步：生成激活码</strong><br>
+                        请返回命令行，按照提示生成激活码
+                    </div>
+
+                    <div class="code">
+cd C:\Users\ASUS\shanjiao-perler
+
+# 生成激活码
+npm run gen:codes:24h
+npm run gen:codes:7d
+npm run gen:codes:lifetime
+                    </div>
+
+                    <button class="btn btn-success" onclick="alert('请在命令行中执行生成激活码命令')">
+                        📋 复制命令
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function completeStep(step) {
+            document.getElementById('step' + step).style.display = 'none';
+            currentStep = step + 1;
+            if (document.getElementById('step' + currentStep)) {
+                document.getElementById('step' + currentStep).style.display = 'block';
+                updateProgress();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentStep - 1) * 25;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressBar').textContent = progress + '%';
+        }
+
+        function copySQL() {
+            const sql = `-- 山椒爱拼豆 - 数据库结构
+-- 在 Supabase SQL Editor 中执行此脚本
+
+-- 1. 激活码表
+CREATE TABLE IF NOT EXISTS activation_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code VARCHAR(20) UNIQUE NOT NULL,
+  type VARCHAR(20) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'unused',
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  activated_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  last_used_at TIMESTAMPTZ,
+
+  price DECIMAL(10,2),
+  batch_id VARCHAR(50),
+
+  CONSTRAINT valid_type CHECK (type IN ('24h', '7d', 'lifetime')),
+  CONSTRAINT valid_status CHECK (status IN ('unused', 'active', 'expired'))
+);
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_activation_codes_code ON activation_codes(code);
+CREATE INDEX IF NOT EXISTS idx_activation_codes_status ON activation_codes(status);
+CREATE INDEX IF NOT EXISTS idx_activation_codes_type ON activation_codes(type);
+CREATE INDEX IF NOT EXISTS idx_activation_codes_batch_id ON activation_codes(batch_id);
+
+-- 2. 使用记录表
+CREATE TABLE IF NOT EXISTS usage_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code_id UUID REFERENCES activation_codes(id) ON DELETE CASCADE,
+  code VARCHAR(20) NOT NULL,
+  user_agent TEXT,
+  ip_address VARCHAR(45),
+  used_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_usage_logs_code_id ON usage_logs(code_id);
+CREATE INDEX IF NOT EXISTS idx_usage_logs_ip ON usage_logs(ip_address);
+CREATE INDEX IF NOT EXISTS idx_usage_logs_used_at ON usage_logs(used_at);`;
+
+            navigator.clipboard.writeText(sql).then(() => {
+                document.getElementById('sqlSuccess').style.display = 'block';
+                document.getElementById('sqlScript').textContent = sql;
+            });
+        }
+
+        function saveConfig(event) {
+            event.preventDefault();
+
+            const url = document.getElementById('supabaseUrl').value;
+            const anonKey = document.getElementById('anonKey').value;
+            const serviceKey = document.getElementById('serviceKey').value;
+
+            const config = `SUPABASE_URL=${url}
+SUPABASE_ANON_KEY=${anonKey}
+SUPABASE_SERVICE_KEY=${serviceKey}`;
+
+            // 显示配置信息
+            alert('配置信息：\n\n' + config + '\n\n请复制此内容并告诉我，我会帮你保存到 .env 文件');
+
+            completeStep(4);
+        }
+
+        // 页面加载时更新进度
+        updateProgress();
+    </script>
+</body>
+</html>

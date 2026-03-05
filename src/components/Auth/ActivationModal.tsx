@@ -1,0 +1,146 @@
+import React, { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { KeyRound, AlertCircle, ExternalLink } from 'lucide-react';
+
+const PURCHASE_URL = 'https://example.com/buy'; // TODO: Replace with actual card platform URL
+
+export const ActivationModal: React.FC = () => {
+  const { activate } = useAuth();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.toUpperCase().replace(/[^A-F0-9-]/g, '');
+
+    // Auto-format as SJ-XXXX-XXXX-XXXX
+    if (!value.startsWith('SJ-')) {
+      if (value.startsWith('SJ')) {
+        value = 'SJ-' + value.slice(2);
+      } else {
+        value = 'SJ-' + value;
+      }
+    }
+
+    // Add dashes automatically
+    const parts = value.slice(3).replace(/-/g, '').match(/.{1,4}/g) || [];
+    if (parts.length > 0) {
+      value = 'SJ-' + parts.join('-').slice(0, 14); // SJ-XXXX-XXXX-XXXX (max length)
+    }
+
+    setCode(value);
+    setError('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!code || code.length < 17) {
+      setError('请输入完整的激活码');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    const result = await activate(code);
+
+    if (!result.success) {
+      setError(result.error || '激活失败，请重试');
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+        {/* Logo/Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+            <KeyRound className="w-10 h-10 text-white" />
+          </div>
+        </div>
+
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
+          山椒爱拼豆
+        </h1>
+        <p className="text-center text-gray-600 mb-8">
+          拼豆图纸生成工具
+        </p>
+
+        {/* Activation Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="activation-code" className="block text-sm font-medium text-gray-700 mb-2">
+              请输入激活码
+            </label>
+            <input
+              id="activation-code"
+              type="text"
+              value={code}
+              onChange={handleInputChange}
+              placeholder="SJ-XXXX-XXXX-XXXX"
+              maxLength={17}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-center text-lg font-mono tracking-wider"
+              disabled={loading}
+            />
+          </div>
+
+          {error && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || code.length < 17}
+            className="w-full bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold py-3 rounded-lg hover:from-purple-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+          >
+            {loading ? '验证中...' : '激活'}
+          </button>
+        </form>
+
+        {/* Pricing Info */}
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <p className="text-sm text-gray-600 text-center mb-4">
+            还没有激活码？选择您的套餐：
+          </p>
+
+          <div className="space-y-2 mb-6">
+            <div className="flex justify-between items-center px-4 py-2 bg-gray-50 rounded-lg">
+              <span className="text-sm text-gray-700">24小时使用权</span>
+              <span className="text-sm font-semibold text-purple-600">¥1.8</span>
+            </div>
+            <div className="flex justify-between items-center px-4 py-2 bg-gray-50 rounded-lg">
+              <span className="text-sm text-gray-700">七天使用权</span>
+              <span className="text-sm font-semibold text-purple-600">¥6.6</span>
+            </div>
+            <div className="flex justify-between items-center px-4 py-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+              <span className="text-sm text-gray-700 font-medium">永久使用权 🔥</span>
+              <span className="text-sm font-bold text-purple-600">¥9.9</span>
+            </div>
+          </div>
+
+          <a
+            href={PURCHASE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full bg-white border-2 border-purple-500 text-purple-600 font-semibold py-3 rounded-lg hover:bg-purple-50 transition-all"
+          >
+            立即购买激活码
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
+
+        {/* Footer */}
+        <p className="mt-6 text-xs text-center text-gray-500">
+          激活码可在多设备使用 · 安全支付 · 即时发货
+        </p>
+      </div>
+    </div>
+  );
+};

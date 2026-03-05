@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发卡平台配置向导 - 山椒爱拼豆</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .step {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        .step-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .step-content {
+            margin-left: 55px;
+            color: #666;
+            line-height: 1.8;
+        }
+        .platform-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .platform-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        .platform-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: "Consolas", monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+            white-space: pre-wrap;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            margin: 10px 5px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .checklist {
+            list-style: none;
+            margin: 15px 0;
+        }
+        .checklist li {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            padding-left: 35px;
+            position: relative;
+        }
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 10px;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .csv-files {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: "Consolas", monospace;
+        }
+        .csv-files li {
+            padding: 8px;
+            background: white;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 发卡平台配置向导</h1>
+            <p>山椒爱拼豆激活码系统 - 自动发货配置</p>
+        </div>
+
+        <div class="content">
+            <!-- 步骤 1: 选择发卡平台 -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    选择发卡平台
+                </div>
+                <div class="step-content">
+                    <p>推荐以下几个国内主流发卡平台：</p>
+
+                    <div class="platform-card" onclick="window.open('https://www.kayis.com/', '_blank')">
+                        <h3>🏆 卡易售（推荐）</h3>
+                        <p><strong>优势</strong>: 界面友好、功能全面、免费使用</p>
+                        <p><strong>手续费</strong>: 0% （平台免费）</p>
+                        <p><strong>支付方式</strong>: 支持支付宝、微信</p>
+                        <p><strong>官网</strong>: https://www.kayis.com/</p>
+                    </div>
+
+                    <div class="platform-card" onclick="window.open('https://www.kamaidian.com/', '_blank')">
+                        <h3>卡买点</h3>
+                        <p><strong>优势</strong>: 老牌平台、稳定可靠</p>
+                        <p><strong>手续费</strong>: 0.5-1%</p>
+                        <p><strong>支付方式</strong>: 支持支付宝、微信</p>
+                        <p><strong>官网</strong>: https://www.kamaidian.com/</p>
+                    </div>
+
+                    <div class="platform-card" onclick="window.open('https://www.fakala.cn/', '_blank')">
+                        <h3>发卡啦</h3>
+                        <p><strong>优势</strong>: 简单易用、快速开店</p>
+                        <p><strong>手续费</strong>: 0.38%</p>
+                        <p><strong>支付方式</strong>: 支持多种支付方式</p>
+                        <p><strong>官网</strong>: https://www.fakala.cn/</p>
+                    </div>
+
+                    <div class="highlight">
+                        <strong>💡 建议</strong>: 如果是第一次开店，选择<strong>卡易售</strong>最简单，完全免费且功能齐全。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤 2: 注册账号 -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    注册账号并完善店铺信息
+                </div>
+                <div class="step-content">
+                    <ul class="checklist">
+                        <li>访问发卡平台官网</li>
+                        <li>点击"注册"或"免费开店"</li>
+                        <li>填写注册信息（手机号/邮箱）</li>
+                        <li>设置店铺名称：<strong>山椒爱拼豆旗舰店</strong></li>
+                        <li>完成邮箱/手机验证</li>
+                        <li>登录后台</li>
+                    </ul>
+
+                    <div class="info-box">
+                        <strong>📝 店铺信息建议</strong>:<br>
+                        店铺名称: 山椒爱拼豆旗舰店<br>
+                        店铺简介: 专业的拼豆图纸生成工具，一键将照片转换为拼豆图纸<br>
+                        联系方式: 你的微信/QQ
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤 3: 准备CSV文件 -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    准备激活码CSV文件
+                </div>
+                <div class="step-content">
+                    <p>你已经生成了以下CSV文件，可以直接使用：</p>
+
+                    <div class="csv-files">
+                        <ul class="checklist">
+                            <li>activation-codes-24h-batch-1772693823589.csv<br>
+                                <small>包含 100 个24小时版激活码</small>
+                            </li>
+                            <li>activation-codes-7d-batch-1772693816232.csv<br>
+                                <small>包含 50 个7天版激活码</small>
+                            </li>
+                            <li>activation-codes-lifetime-batch-1772693811256.csv<br>
+                                <small>包含 20 个永久版激活码</small>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>📁 文件位置</strong>: C:\Users\ASUS\shanjiao-perler\<br>
+                        <strong>📋 CSV格式</strong>: 每行一个激活码，格式为 SJ-XXXX-XXXX-XXXX
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤 4: 创建商品 -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    创建商品并配置
+                </div>
+                <div class="step-content">
+                    <p>在发卡平台后台创建 3 个商品：</p>
+
+                    <h3 style="margin-top: 20px;">商品 1: 24小时版</h3>
+                    <div class="code">商品名称: 山椒爱拼豆 24小时使用权
+商品分类: 软件激活码 / 在线工具
+商品价格: ¥1.80
+商品库存: 100
+发货方式: 自动发货</div>
+
+                    <p><strong>商品描述模板</strong>（复制使用）:</p>
+                    <div class="code">🎨 山椒爱拼豆 - 拼豆图纸生成工具
+
+✨ 24小时畅用版
+• 支持任意图片转拼豆图纸
+• 多种颜色方案（Hama/Perler/Artkal）
+• 高清图纸导出
+• 激活后24小时内无限使用
+
+📱 使用方法：
+1. 购买后立即获得激活码
+2. 访问：https://shanjiao-perler.vercel.app
+3. 输入激活码即可使用
+
+⚡ 自动发货：付款后自动发送激活码
+🔄 跨设备使用：同一激活码可在多台设备使用
+⏰ 有效期：从激活时刻开始计时24小时
+
+🛡️ 售后保障：激活码无效全额退款</div>
+
+                    <p><strong>发货模板</strong>（复制使用）:</p>
+                    <div class="code">🎉 感谢购买山椒爱拼豆！
+
+━━━━━━━━━━━━━━━━━━
+📋 激活信息
+━━━━━━━━━━━━━━━━━━
+
+激活码: {卡密}
+有效期: 24小时（从激活时刻开始计时）
+
+━━━━━━━━━━━━━━━━━━
+📱 使用步骤
+━━━━━━━━━━━━━━━━━━
+
+1. 访问网站: https://shanjiao-perler.vercel.app
+2. 输入上方激活码
+3. 开始制作你的拼豆图纸！
+
+━━━━━━━━━━━━━━━━━━
+⚠️ 重要提示
+━━━━━━━━━━━━━━━━━━
+
+✓ 激活码从首次使用时开始计时
+✓ 同一激活码可在多台设备使用
+✓ 24小时后自动过期
+✓ 如有问题请联系客服
+
+感谢支持！祝你创作愉快！🎨</div>
+
+                    <h3 style="margin-top: 30px;">商品 2: 七天版</h3>
+                    <div class="info-box">
+                        重复上述步骤，修改以下内容：<br>
+                        • 商品名称: 山椒爱拼豆 七天使用权<br>
+                        • 商品价格: ¥6.60<br>
+                        • 商品库存: 50<br>
+                        • 有效期说明: 七天（7×24小时）
+                    </div>
+
+                    <h3 style="margin-top: 30px;">商品 3: 永久版</h3>
+                    <div class="info-box">
+                        重复上述步骤，修改以下内容：<br>
+                        • 商品名称: 山椒爱拼豆 永久使用权 🌟<br>
+                        • 商品价格: ¥9.90<br>
+                        • 商品库存: 20<br>
+                        • 有效期说明: 永久有效，无时间限制<br>
+                        • 突出优势: 最划算的选择！一次购买，终身使用
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤 5: 批量导入激活码 -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    批量导入激活码
+                </div>
+                <div class="step-content">
+                    <p>在每个商品的管理页面：</p>
+
+                    <ul class="checklist">
+                        <li>找到"卡密管理"或"库存管理"</li>
+                        <li>点击"批量导入"或"导入卡密"</li>
+                        <li>选择对应的CSV文件上传</li>
+                        <li>24小时版 → activation-codes-24h-batch-*.csv</li>
+                        <li>七天版 → activation-codes-7d-batch-*.csv</li>
+                        <li>永久版 → activation-codes-lifetime-batch-*.csv</li>
+                        <li>确认导入成功，检查库存数量</li>
+                    </ul>
+
+                    <div class="warning">
+                        <strong>⚠️ 注意</strong>: 不同平台的CSV导入格式可能略有不同，如果导入失败：<br>
+                        • 检查CSV文件编码（应为UTF-8）<br>
+                        • 确保每行只有一个激活码<br>
+                        • 移除CSV第一行的表头（code,type,price）
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤 6: 测试购买流程 -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">6</span>
+                    测试购买流程
+                </div>
+                <div class="step-content">
+                    <p>在正式销售前，务必测试完整流程：</p>
+
+                    <ul class="checklist">
+                        <li>复制商品链接</li>
+                        <li>在浏览器隐身模式打开</li>
+                        <li>模拟购买（可以设置测试金额¥0.01）</li>
+                        <li>完成支付</li>
+                        <li>检查是否自动发货</li>
+                        <li>复制收到的激活码</li>
+                        <li>访问 https://shanjiao-perler.vercel.app</li>
+                        <li>输入激活码，验证是否成功</li>
+                    </ul>
+
+                    <div class="success">
+                        <strong>✅ 测试清单</strong>:<br>
+                        □ 支付成功<br>
+                        □ 自动显示激活码<br>
+                        □ 激活码格式正确<br>
+                        □ 网站激活成功<br>
+                        □ 功能正常使用
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤 7: 配置支付方式 -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">7</span>
+                    配置支付方式
+                </div>
+                <div class="step-content">
+                    <p>在发卡平台后台设置收款方式：</p>
+
+                    <div class="info-box">
+                        <strong>选项 A: 支付宝个人收款（推荐新手）</strong><br>
+                        • 无需营业执照<br>
+                        • 手续费: 0.38%<br>
+                        • 到账时间: T+1<br>
+                        • 配置: 填写支付宝账号即可
+                    </div>
+
+                    <div class="info-box">
+                        <strong>选项 B: 平台托管收款（最简单）</strong><br>
+                        • 无需任何资质<br>
+                        • 手续费: 1-2%<br>
+                        • 到账时间: T+1<br>
+                        • 配置: 一键开通，自动结算
+                    </div>
+
+                    <div class="highlight">
+                        <strong>💡 建议</strong>: 如果是个人第一次开店，选择"平台托管收款"最简单，无需任何配置。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 完成总结 -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">✅</span>
+                    配置完成！
+                </div>
+                <div class="step-content">
+                    <div class="success">
+                        <h3>🎉 恭喜！发卡平台配置完成</h3>
+                        <p>你现在拥有：</p>
+                        <ul class="checklist">
+                            <li>完整的发卡店铺</li>
+                            <li>3 个商品（24h/7d/永久）</li>
+                            <li>170 个激活码（库存充足）</li>
+                            <li>自动发货系统</li>
+                            <li>支付收款功能</li>
+                        </ul>
+                    </div>
+
+                    <div class="highlight">
+                        <strong>📝 下一步</strong>:<br>
+                        • 复制商品链接<br>
+                        • 部署网站到 Vercel<br>
+                        • 上架到淘宝/拼多多/闲鱼<br>
+                        • 开始推广和销售！
+                    </div>
+
+                    <p style="text-align: center; margin-top: 30px;">
+                        <strong style="font-size: 24px;">准备好开始销售了吗？🚀</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -33,3 +33,6 @@ coverage/
 *.tmp
 *.backup
 *.bak
+
+# 激活码 CSV 文件（包含敏感信息）
+activation-codes-*.csv

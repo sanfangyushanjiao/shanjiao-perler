@@ -2,9 +2,29 @@
 
 > 上传图片，一键生成拼豆图纸
 
-[![部署状态](https://img.shields.io/badge/部署-成功-brightgreen)](https://perler-beads-generator.vercel.app)
-[![测试](https://img.shields.io/badge/测试-50%20通过-brightgreen)](https://github.com)
+[![部署状态](https://img.shields.io/badge/部署-成功-brightgreen)](https://shanjiao-perler.vercel.app)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+## 🔐 激活系统
+
+**本项目现已支持激活码付费系统！**
+
+### 套餐价格
+- 💫 **24小时体验版**: ¥1.8
+- ⭐ **七天标准版**: ¥6.6
+- 🔥 **永久专业版**: ¥9.9
+
+### 快速开始
+1. 访问网站并输入激活码
+2. 同一激活码可在多设备使用
+3. 无需注册，即开即用
+
+### 开发者指南
+- 📖 [完整部署指南](ACTIVATION_SYSTEM.md)
+- 🚀 [快速开始](QUICK_START_ACTIVATION.md)
+- ✅ [部署检查清单](DEPLOYMENT_CHECKLIST.md)
+
+---
 
 ## ✨ 功能特点
 
@@ -46,17 +66,25 @@
 
 ## 🚀 在线使用
 
-访问：[https://perler-beads-generator.vercel.app](https://perler-beads-generator.vercel.app)
+访问：[https://shanjiao-perler.vercel.app](https://shanjiao-perler.vercel.app)
+
+**注意**: 需要激活码才能使用，请联系购买。
+
+---
 
 ## 💻 本地开发
 
 ```bash
 # 克隆项目
-git clone https://github.com/你的用户名/perler-beads-generator.git
-cd perler-beads-generator
+git clone https://github.com/sanfangyushanjiao/shanjiao-perler.git
+cd shanjiao-perler
 
 # 安装依赖
 npm install
+
+# 配置环境变量（仅开发激活码系统时需要）
+cp .env.example .env
+# 编辑 .env 填入 Supabase 配置
 
 # 启动开发服务器
 npm run dev
@@ -66,6 +94,22 @@ npm test
 
 # 构建生产版本
 npm run build
+```
+
+### 生成激活码（仅管理员）
+
+```bash
+# 生成 100 个 24小时激活码
+npm run gen:codes:24h
+
+# 生成 50 个 七天激活码
+npm run gen:codes:7d
+
+# 生成 20 个 永久激活码
+npm run gen:codes:lifetime
+
+# 自定义生成
+tsx scripts/generate-codes.ts --type 24h --count 200 --batch promo-2024
 ```
 
 ## 🧪 测试
@@ -80,11 +124,19 @@ npm run test:coverage
 
 ## 📦 技术栈
 
+### 前端
 - **框架**：React 19 + TypeScript
 - **构建工具**：Vite 7
 - **样式**：Tailwind CSS 4
 - **测试**：Vitest + Testing Library
 - **性能**：Web Worker
+- **图标**：Lucide React
+
+### 后端（激活系统）
+- **数据库**：Supabase PostgreSQL
+- **API**：Vercel Serverless Functions
+- **认证**：自定义激活码系统
+- **支付**：发卡平台集成
 
 ## 📸 截图
 
