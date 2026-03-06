@@ -9,7 +9,6 @@ interface ColorPickerProps {
   brand: BrandName;
   colorReplaceState?: ColorReplaceState;
   onColorReplace?: (sourceColor: PaletteColor, targetColor: PaletteColor) => void;
-  onSelectSourceColor?: (color: PaletteColor) => void;
   currentColors?: PaletteColor[]; // 当前图像中使用的颜色
 }
 
@@ -137,7 +136,6 @@ function ColorPicker({
   brand,
   colorReplaceState,
   onColorReplace,
-  onSelectSourceColor,
   currentColors = [],
 }: ColorPickerProps) {
   const [showFullPalette, setShowFullPalette] = useState(false);
