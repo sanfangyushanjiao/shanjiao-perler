@@ -36,12 +36,9 @@ export default function EditableCanvas({
   const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
   const cellSizeRef = useRef(40);
 
-  // 触摸交互状态
-  const [initialPinchDistance, setInitialPinchDistance] = useState<number | null>(null);
-  const [initialScale, setInitialScale] = useState(1);
-  const [pinchCenter, setPinchCenter] = useState<{ x: number; y: number } | null>(null);
+  // 触摸交互状态 - 简化版，只跟踪单指拖拽
   const lastTouchRef = useRef<{ x: number; y: number } | null>(null);
-  const isScalingRef = useRef(false);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   // 绘制画布
   useEffect(() => {
@@ -272,102 +269,72 @@ export default function EditableCanvas({
     setScale((s) => Math.max(0.1, Math.min(s * delta, 3)));
   };
 
-  // 触摸事件处理
+  // 触摸事件处理 - 简化版，移除双指缩放，依赖浏览器默认缩放
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
+    // 只处理单指操作
+    if (e.touches.length !== 1) return;
 
-    if (e.touches.length === 2) {
-      // 双指缩放
-      const distance = getTouchDistance(e.touches);
-      const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const touch = e.touches[0];
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    };
 
-      setInitialPinchDistance(distance);
-      setInitialScale(scale);
-      setPinchCenter({ x: centerX, y: centerY });
-      setIsDragging(false);
-      setIsDrawing(false);
-      isScalingRef.current = true;
-    } else if (e.touches.length === 1) {
-      const touch = e.touches[0];
-
-      if (isEditMode) {
-        // 编辑模式：绘制
-        const coords = getCanvasCoordinatesFromTouch(touch);
-        if (coords) {
-          // 颜色替换模式：第1步选择源颜色
-          if (colorReplaceState?.isActive && colorReplaceState.step === 'selectSource') {
-            const cell = grid![coords.row][coords.col];
-            if (!cell.isExternal && onSelectSourceColor) {
-              onSelectSourceColor(cell.paletteColor);
-            }
-            return;
+    if (isEditMode) {
+      // 编辑模式：准备绘制
+      const coords = getCanvasCoordinatesFromTouch(touch);
+      if (coords) {
+        // 颜色替换模式：第1步选择源颜色
+        if (colorReplaceState?.isActive && colorReplaceState.step === 'selectSource') {
+          const cell = grid![coords.row][coords.col];
+          if (!cell.isExternal && onSelectSourceColor) {
+            onSelectSourceColor(cell.paletteColor);
           }
-
-          setIsDrawing(true);
-          executeTool(coords.row, coords.col);
+          return;
         }
-      } else {
-        // 浏览模式：拖拽
-        setIsDragging(true);
-        setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
-      }
 
-      lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
+        setIsDrawing(true);
+        executeTool(coords.row, coords.col);
+      }
+    } else {
+      // 浏览模式：准备拖拽
+      setIsDragging(true);
+      setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
     }
+
+    lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
+    // 只处理单指操作
+    if (e.touches.length !== 1) return;
 
-    if (e.touches.length === 2 && initialPinchDistance !== null && isScalingRef.current) {
-      // 双指缩放 - 使用节流避免频繁更新
-      const distance = getTouchDistance(e.touches);
-      const scaleChange = distance / initialPinchDistance;
-      const newScale = Math.max(0.1, Math.min(initialScale * scaleChange, 3));
+    const touch = e.touches[0];
 
-      // 只在缩放变化超过阈值时更新（减少闪烁）
-      if (Math.abs(newScale - scale) > 0.01) {
-        setScale(newScale);
+    if (isEditMode && isDrawing) {
+      // 编辑模式：连续绘制
+      const coords = getCanvasCoordinatesFromTouch(touch);
+      if (coords && (currentTool === 'brush' || currentTool === 'eraser')) {
+        executeTool(coords.row, coords.col);
       }
-    } else if (e.touches.length === 1) {
-      const touch = e.touches[0];
-
-      if (isEditMode && isDrawing) {
-        // 编辑模式：连续绘制
-        const coords = getCanvasCoordinatesFromTouch(touch);
-        if (coords && (currentTool === 'brush' || currentTool === 'eraser')) {
-          executeTool(coords.row, coords.col);
-        }
-      } else if (isDragging && lastTouchRef.current && !isScalingRef.current) {
-        // 拖拽移动
-        const dx = touch.clientX - lastTouchRef.current.x;
-        const dy = touch.clientY - lastTouchRef.current.y;
-        setPosition(prev => ({
-          x: prev.x + dx,
-          y: prev.y + dy,
-        }));
-        lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
-      }
+    } else if (isDragging && lastTouchRef.current) {
+      // 拖拽移动
+      const dx = touch.clientX - lastTouchRef.current.x;
+      const dy = touch.clientY - lastTouchRef.current.y;
+      setPosition(prev => ({
+        x: prev.x + dx,
+        y: prev.y + dy,
+      }));
+      lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (e.touches.length === 0) {
-      setIsDragging(false);
-      setIsDrawing(false);
-      setInitialPinchDistance(null);
-      setPinchCenter(null);
-      lastTouchRef.current = null;
-      isScalingRef.current = false;
-    } else if (e.touches.length === 1) {
-      // 从双指变为单指，重置拖拽起点
-      setInitialPinchDistance(null);
-      setPinchCenter(null);
-      isScalingRef.current = false;
-      const touch = e.touches[0];
-      lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
-    }
+    setIsDragging(false);
+    setIsDrawing(false);
+    lastTouchRef.current = null;
+    touchStartRef.current = null;
   };
 
   if (!grid) {
@@ -421,7 +388,6 @@ export default function EditableCanvas({
         style={{
           height: '70vh',
           cursor: cursorStyle,
-          touchAction: 'none', // 禁用浏览器默认的触摸手势
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

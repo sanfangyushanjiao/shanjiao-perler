@@ -9,6 +9,7 @@ interface ColorPickerProps {
   brand: BrandName;
   colorReplaceState?: ColorReplaceState;
   onColorReplace?: (sourceColor: PaletteColor, targetColor: PaletteColor) => void;
+  onSelectSourceColor?: (color: PaletteColor) => void;
   currentColors?: PaletteColor[]; // 当前图像中使用的颜色
 }
 
@@ -136,23 +137,29 @@ function ColorPicker({
   brand,
   colorReplaceState,
   onColorReplace,
+  onSelectSourceColor,
   currentColors = [],
 }: ColorPickerProps) {
   const [showFullPalette, setShowFullPalette] = useState(false);
 
   // 处理颜色选择
   const handleColorClick = useCallback((color: PaletteColor) => {
-    // 如果处于颜色替换模式的第2步，执行颜色替换
-    if (colorReplaceState?.isActive &&
-        colorReplaceState.step === 'selectTarget' &&
-        colorReplaceState.sourceColor &&
-        onColorReplace) {
-      onColorReplace(colorReplaceState.sourceColor, color);
+    // 如果处于颜色替换模式
+    if (colorReplaceState?.isActive) {
+      if (colorReplaceState.step === 'selectSource') {
+        // 步骤1: 从色板直接选择源颜色
+        if (onSelectSourceColor) {
+          onSelectSourceColor(color);
+        }
+      } else if (colorReplaceState.step === 'selectTarget' && colorReplaceState.sourceColor && onColorReplace) {
+        // 步骤2: 选择目标颜色并执行替换
+        onColorReplace(colorReplaceState.sourceColor, color);
+      }
     } else {
-      // 正常颜色选择
+      // 正常颜色选择（用于画笔工具）
       onColorSelect(color);
     }
-  }, [colorReplaceState, onColorReplace, onColorSelect]);
+  }, [colorReplaceState, onColorReplace, onSelectSourceColor, onColorSelect]);
 
   // 排序后的调色板 - 仅在调色板改变时重新计算
   const sortedPalette = useMemo(() => sortColorsByHSL(palette), [palette]);
@@ -193,12 +200,34 @@ function ColorPicker({
 
       {/* 颜色替换模式提示 */}
       {colorReplaceState?.isActive && (
-        <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-lg">
-          <div className="text-xs text-amber-700 text-center">
-            {colorReplaceState.step === 'selectSource'
-              ? '请选择要替换的源颜色'
-              : '请选择目标颜色'}
-          </div>
+        <div className="mb-3 p-3 bg-blue-50 border-2 border-blue-300 rounded-lg">
+          {colorReplaceState.step === 'selectSource' ? (
+            <div>
+              <div className="text-sm font-bold text-blue-800 mb-2">
+                步骤1: 选择要替换的源颜色
+              </div>
+              <div className="text-xs text-blue-600">
+                请在画布上点击要替换的颜色，或从下方色板直接选择
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="text-sm font-bold text-blue-800 mb-2">
+                步骤2: 选择目标颜色
+              </div>
+              <div className="text-xs text-blue-600 mb-2">
+                源颜色: <span className="font-mono font-bold">{colorReplaceState.sourceColor?.hex}</span>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <div
+                  className="w-8 h-8 rounded border-2 border-gray-300"
+                  style={{ backgroundColor: colorReplaceState.sourceColor?.hex }}
+                />
+                <span className="text-xl">→</span>
+                <div className="text-xs text-blue-600">从下方色板选择目标颜色</div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

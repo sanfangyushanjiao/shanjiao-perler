@@ -575,6 +575,7 @@ function App() {
                 brand={configState.brand}
                 colorReplaceState={editState.colorReplaceState}
                 onColorReplace={handleColorReplace}
+                onSelectSourceColor={editState.selectSourceColor}
                 currentColors={currentColors}
               />
             )}
