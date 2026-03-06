@@ -74,9 +74,15 @@ export default function ControlPanel({
           value={gridSize}
           onChange={(e) => {
             const value = e.target.value.replace(/[^0-9]/g, '');
-            const num = value === '' ? 10 : Math.max(10, Math.min(300, Number(value)));
-            onGridSizeChange(num);
+            if (value === '') {
+              // 允许清空，传递空字符串对应的最小值
+              onGridSizeChange(10);
+            } else {
+              const num = Math.max(10, Math.min(300, Number(value)));
+              onGridSizeChange(num);
+            }
           }}
+          onFocus={(e) => e.target.select()}
           disabled={disabled}
           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
         />
@@ -94,9 +100,15 @@ export default function ControlPanel({
           value={mergeThreshold}
           onChange={(e) => {
             const value = e.target.value.replace(/[^0-9]/g, '');
-            const num = value === '' ? 0 : Math.max(0, Math.min(100, Number(value)));
-            onMergeThresholdChange(num);
+            if (value === '') {
+              // 允许清空，传递0
+              onMergeThresholdChange(0);
+            } else {
+              const num = Math.max(0, Math.min(100, Number(value)));
+              onMergeThresholdChange(num);
+            }
           }}
+          onFocus={(e) => e.target.select()}
           disabled={disabled}
           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-secondary focus:border-secondary disabled:opacity-50 disabled:cursor-not-allowed"
         />
