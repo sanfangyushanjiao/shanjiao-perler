@@ -68,13 +68,16 @@ export default function ControlPanel({
           网格尺寸 (10-300):
         </label>
         <input
-          type="number"
+          type="text"
+          inputMode="numeric"
           id="gridSizeInput"
           value={gridSize}
-          onChange={(e) => onGridSizeChange(Number(e.target.value))}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, '');
+            const num = value === '' ? 10 : Math.max(10, Math.min(300, Number(value)));
+            onGridSizeChange(num);
+          }}
           disabled={disabled}
-          min="10"
-          max="300"
           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
         />
       </div>
@@ -85,13 +88,16 @@ export default function ControlPanel({
           颜色数量控制 (0-100):
         </label>
         <input
-          type="number"
+          type="text"
+          inputMode="numeric"
           id="mergeThresholdInput"
           value={mergeThreshold}
-          onChange={(e) => onMergeThresholdChange(Number(e.target.value))}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, '');
+            const num = value === '' ? 0 : Math.max(0, Math.min(100, Number(value)));
+            onMergeThresholdChange(num);
+          }}
           disabled={disabled}
-          min="0"
-          max="100"
           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-secondary focus:border-secondary disabled:opacity-50 disabled:cursor-not-allowed"
         />
         <div className="text-xs text-gray-500 mt-2">
