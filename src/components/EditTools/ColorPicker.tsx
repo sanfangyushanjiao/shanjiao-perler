@@ -192,46 +192,6 @@ function ColorPicker({
         </div>
       )}
 
-      {/* 颜色替换模式提示 */}
-      {colorReplaceState?.isActive && (
-        <div className="mb-3 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
-          {colorReplaceState.step === 'selectSource' ? (
-            <div>
-              <div className="text-sm font-bold text-orange-800 mb-2 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-                步骤1: 选择要替换的源颜色
-              </div>
-              <div className="text-xs text-orange-700">
-                请在画布上点击要替换的颜色
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div className="text-sm font-bold text-orange-800 mb-2 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-                步骤2: 选择目标颜色
-              </div>
-              <div className="flex items-center gap-2 mb-2 bg-white p-2 rounded border border-orange-200">
-                <span className="text-xs text-orange-600">源颜色:</span>
-                <div
-                  className="w-6 h-6 rounded border-2 border-gray-400"
-                  style={{ backgroundColor: colorReplaceState.sourceColor?.hex }}
-                />
-                <span className="text-xs font-mono font-bold text-gray-700">{colorReplaceState.sourceColor?.hex}</span>
-                <span className="text-lg text-orange-600">→</span>
-              </div>
-              <div className="text-xs text-orange-700">
-                从下方色板选择目标颜色
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* 颜色网格 - 改进滚动性能 */}
       <div
         className="overflow-y-auto overflow-x-hidden"
