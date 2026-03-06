@@ -192,6 +192,23 @@ function ColorPicker({
         </div>
       )}
 
+      {/* 颜色替换模式提示 - 仅显示步骤1 */}
+      {colorReplaceState?.isActive && colorReplaceState.step === 'selectSource' && (
+        <div className="mb-3 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
+          <div>
+            <div className="text-sm font-bold text-orange-800 mb-2 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+              </svg>
+              步骤1: 选择要替换的源颜色
+            </div>
+            <div className="text-xs text-orange-700">
+              请在画布上点击要替换的颜色
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 颜色网格 - 改进滚动性能 */}
       <div
         className="overflow-y-auto overflow-x-hidden"
