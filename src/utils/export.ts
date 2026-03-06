@@ -89,8 +89,16 @@ function downloadBlob(blob: Blob, filename: string) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+
+  // 添加到DOM以确保某些移动浏览器能正确处理
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+
+  // 延迟移除以确保下载开始
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
 }
 
 /**
@@ -98,29 +106,33 @@ function downloadBlob(blob: Blob, filename: string) {
  */
 function showMobileSaveTip() {
   const tip = document.createElement('div');
-  tip.textContent = '💡 提示：图片已下载，长按图片可保存到相册';
+  tip.innerHTML = `
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">✅ 图片已下载</div>
+    <div style="font-size: 16px;">长按图片可保存到相册</div>
+  `;
   tip.style.cssText = `
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.90);
     color: white;
-    padding: 16px 24px;
-    border-radius: 12px;
+    padding: 20px 28px;
+    border-radius: 16px;
     font-size: 16px;
     z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    max-width: 80%;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    max-width: 85%;
     text-align: center;
+    line-height: 1.5;
   `;
   document.body.appendChild(tip);
 
   setTimeout(() => {
     tip.style.opacity = '0';
-    tip.style.transition = 'opacity 0.3s ease';
-    setTimeout(() => document.body.removeChild(tip), 300);
-  }, 3000);
+    tip.style.transition = 'opacity 0.4s ease';
+    setTimeout(() => document.body.removeChild(tip), 400);
+  }, 4000); // 延长显示时间到4秒
 }
 
 /**
@@ -254,16 +266,16 @@ function drawCoordinates(
  * 计算统计区域高度
  */
 function calculateStatsHeight(colorStats: ColorStat[]): number {
-  const headerHeight = 120;
-  const rowHeight = 80; // 增加行高以适配更大的文字
+  const headerHeight = 140;
+  const rowHeight = 100; // 进一步增加行高以适配更大的文字和间距
   const columns = 2; // 改为2列以增加可读性
   const rows = Math.ceil(colorStats.length / columns);
-  const watermarkHeight = 80; // 添加水印区域高度
-  return headerHeight + rows * rowHeight + 60 + watermarkHeight;
+  const watermarkHeight = 100; // 添加水印区域高度
+  return headerHeight + rows * rowHeight + 80 + watermarkHeight;
 }
 
 /**
- * 绘制统计信息（移动端优化）
+ * 绘制统计信息（移动端优化 - 超大字体和间距）
  */
 function drawStats(
   ctx: CanvasRenderingContext2D,
@@ -272,37 +284,37 @@ function drawStats(
   width: number,
   padding: number
 ) {
-  // 绘制分隔线
+  // 绘制分隔线 - 更粗
   ctx.strokeStyle = '#E5E7EB';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.moveTo(padding, startY);
   ctx.lineTo(width - padding, startY);
   ctx.stroke();
 
-  // 绘制统计标题 - 更大字体
+  // 绘制统计标题 - 超大字体
   ctx.fillStyle = '#1F2937';
-  ctx.font = 'bold 48px sans-serif';
+  ctx.font = 'bold 56px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('颜色统计', width / 2, startY + 60);
+  ctx.fillText('颜色统计', width / 2, startY + 70);
 
   // 计算总珠子数 - 更大字体
   const totalBeads = colorStats.reduce((sum, stat) => sum + stat.count, 0);
-  ctx.font = '32px sans-serif';
+  ctx.font = '36px sans-serif';
   ctx.fillStyle = '#6B7280';
-  ctx.fillText(`总计: ${totalBeads} 颗 | 共 ${colorStats.length} 种颜色`, width / 2, startY + 105);
+  ctx.fillText(`总计: ${totalBeads} 颗 | 共 ${colorStats.length} 种颜色`, width / 2, startY + 120);
 
   // 绘制颜色列表（2列布局以增加可读性）
   const columns = 2;
   const columnWidth = (width - padding * 2) / columns;
-  const rowHeight = 80; // 增加行高
-  const colorBlockSize = 60; // 增大色块
-  let currentY = startY + 140;
+  const rowHeight = 100; // 进一步增加行高
+  const colorBlockSize = 70; // 进一步增大色块
+  let currentY = startY + 160;
 
   colorStats.forEach((stat, index) => {
     const col = index % columns;
     const row = Math.floor(index / columns);
-    const x = padding + col * columnWidth + 20; // 增加左边距
+    const x = padding + col * columnWidth + 25; // 增加左边距
     const y = currentY + row * rowHeight;
 
     // 绘制颜色方块 - 更大
@@ -312,23 +324,23 @@ function drawStats(
     ctx.lineWidth = 3;
     ctx.strokeRect(x, y, colorBlockSize, colorBlockSize);
 
-    // 绘制色号 - 更大字体
+    // 绘制色号 - 超大字体
     ctx.fillStyle = '#1F2937';
-    ctx.font = 'bold 28px sans-serif';
+    ctx.font = 'bold 32px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(stat.code, x + colorBlockSize + 15, y + 22);
+    ctx.fillText(stat.code, x + colorBlockSize + 20, y + 28);
 
     // 绘制数量 - 更大字体
-    ctx.font = '24px sans-serif';
+    ctx.font = '28px sans-serif';
     ctx.fillStyle = '#6B7280';
-    ctx.fillText(`${stat.count} 颗`, x + colorBlockSize + 15, y + 50);
+    ctx.fillText(`${stat.count} 颗`, x + colorBlockSize + 20, y + 60);
   });
 
   // 绘制底部水印 - 更大字体
   const rows = Math.ceil(colorStats.length / columns);
-  const watermarkY = currentY + rows * rowHeight + 50;
+  const watermarkY = currentY + rows * rowHeight + 60;
   ctx.fillStyle = '#9CA3AF';
-  ctx.font = '28px sans-serif';
+  ctx.font = '32px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('@山椒爱拼豆', width / 2, watermarkY);
 }
