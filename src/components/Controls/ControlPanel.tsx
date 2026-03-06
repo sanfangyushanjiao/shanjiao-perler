@@ -91,15 +91,13 @@ export default function ControlPanel({
             setGridSizeInput(value);
 
             if (value === '') {
-              // 保持空白，不更新实际值
+              // 空白时不更新
               return;
             }
 
             const num = Number(value);
-            // 只有在范围内才更新实际值
-            if (num >= 10 && num <= 300) {
-              onGridSizeChange(num);
-            }
+            // 无论是否在范围内都更新，让App.tsx的handleApplyParameters处理超出范围的情况
+            onGridSizeChange(num);
           }}
           disabled={disabled}
           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
@@ -121,15 +119,13 @@ export default function ControlPanel({
             setMergeThresholdInput(value);
 
             if (value === '') {
-              // 保持空白，不更新实际值
+              // 空白时不更新
               return;
             }
 
             const num = Number(value);
-            // 只有在范围内才更新实际值
-            if (num >= 0 && num <= 100) {
-              onMergeThresholdChange(num);
-            }
+            // 无论是否在范围内都更新，让App.tsx的handleApplyParameters处理超出范围的情况
+            onMergeThresholdChange(num);
           }}
           disabled={disabled}
           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-secondary focus:border-secondary disabled:opacity-50 disabled:cursor-not-allowed"

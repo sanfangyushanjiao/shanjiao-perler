@@ -146,23 +146,35 @@ function App() {
     // 检查并重置超出范围的值为默认值
     let finalGridSize = tempGridSize;
     let finalMergeThreshold = tempMergeThreshold;
+    let hasOutOfRangeValue = false;
 
     // 网格尺寸：超出范围则重置为50
     if (tempGridSize < 10 || tempGridSize > 300) {
       finalGridSize = 50;
       setTempGridSize(50);
+      hasOutOfRangeValue = true;
     }
 
     // 颜色数量控制：超出范围则重置为0
     if (tempMergeThreshold < 0 || tempMergeThreshold > 100) {
       finalMergeThreshold = 0;
       setTempMergeThreshold(0);
+      hasOutOfRangeValue = true;
+    }
+
+    // 如果检测到超出范围的值,清除所有额外处理状态,恢复为初始状态
+    if (hasOutOfRangeValue) {
+      setExcludedColors(new Set());
+      setRemoveBackground(false);
+      setAutoNoiseRemovalApplied(false);
+      setRemovedColorsCount(0);
+      setGridBeforeAutoNoise(null);
     }
 
     const gridSizeChanged = finalGridSize !== configState.gridSize;
     const thresholdChanged = finalMergeThreshold !== configState.mergeThreshold;
 
-    if (!gridSizeChanged && !thresholdChanged) {
+    if (!gridSizeChanged && !thresholdChanged && !hasOutOfRangeValue) {
       return;
     }
 
@@ -172,7 +184,7 @@ function App() {
       mergeThreshold: finalMergeThreshold,
     }));
 
-    if (gridSizeChanged && imageState.originalImage && canvasRef.current) {
+    if ((gridSizeChanged || hasOutOfRangeValue) && imageState.originalImage && canvasRef.current) {
       const { N, M } = calculateGridSize(
         imageState.originalImage.width,
         imageState.originalImage.height,
@@ -185,12 +197,20 @@ function App() {
           let grid = await imageProcessor.pixelate(canvasRef.current!, N, M, palette, configState.mode);
           setRawGrid(grid);
 
-          if (finalMergeThreshold > 0) {
-            grid = await imageProcessor.processMergeColors(grid, finalMergeThreshold);
-          }
+          // 如果是超出范围重置,不应用任何额外处理
+          if (!hasOutOfRangeValue) {
+            if (finalMergeThreshold > 0) {
+              grid = await imageProcessor.processMergeColors(grid, finalMergeThreshold);
+            }
 
-          if (excludedColors.size > 0) {
-            grid = removeNoiseColors(grid, excludedColors, palette);
+            if (excludedColors.size > 0) {
+              grid = removeNoiseColors(grid, excludedColors, palette);
+            }
+          } else {
+            // 超出范围时,只应用默认的合并阈值(0 = 不合并)
+            if (finalMergeThreshold > 0) {
+              grid = await imageProcessor.processMergeColors(grid, finalMergeThreshold);
+            }
           }
 
           setImageState((prev) => ({
@@ -206,19 +226,24 @@ function App() {
         }
       })();
 
-      setRemoveBackground(false);
-    } else if (thresholdChanged && rawGrid) {
+      if (hasOutOfRangeValue) {
+        setRemoveBackground(false);
+      }
+    } else if ((thresholdChanged || hasOutOfRangeValue) && rawGrid && !gridSizeChanged) {
       setIsProcessing(true);
       (async () => {
         try {
           let grid = await imageProcessor.processMergeColors(rawGrid, finalMergeThreshold);
 
-          if (excludedColors.size > 0) {
-            grid = removeNoiseColors(grid, excludedColors, palette);
-          }
+          // 如果是超出范围重置,不应用额外的处理
+          if (!hasOutOfRangeValue) {
+            if (excludedColors.size > 0) {
+              grid = removeNoiseColors(grid, excludedColors, palette);
+            }
 
-          if (removeBackground) {
-            grid = await imageProcessor.processRemoveBackground(grid);
+            if (removeBackground) {
+              grid = await imageProcessor.processRemoveBackground(grid);
+            }
           }
 
           setImageState((prev) => ({
