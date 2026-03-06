@@ -36,10 +36,6 @@ export default function EditableCanvas({
   const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
   const cellSizeRef = useRef(40);
 
-  // 触摸交互状态 - 简化版，只跟踪单指拖拽
-  const lastTouchRef = useRef<{ x: number; y: number } | null>(null);
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-
   // 绘制画布
   useEffect(() => {
     if (!grid || !canvasRef.current || !containerRef.current) return;
@@ -138,33 +134,6 @@ export default function EditableCanvas({
       grid[0].length,
       grid.length
     );
-  };
-
-  // 获取画布坐标（触摸）
-  const getCanvasCoordinatesFromTouch = (touch: React.Touch): { row: number; col: number } | null => {
-    if (!canvasRef.current || !grid) return null;
-
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const canvasX = (touch.clientX - rect.left) / scale;
-    const canvasY = (touch.clientY - rect.top) / scale;
-
-    return canvasToGrid(
-      canvasX,
-      canvasY,
-      cellSizeRef.current,
-      canvas.width,
-      canvas.height,
-      grid[0].length,
-      grid.length
-    );
-  };
-
-  // 计算两个触摸点之间的距离
-  const getTouchDistance = (touches: React.TouchList): number => {
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.sqrt(dx * dx + dy * dy);
   };
 
   // 执行工具操作
@@ -269,74 +238,6 @@ export default function EditableCanvas({
     setScale((s) => Math.max(0.1, Math.min(s * delta, 3)));
   };
 
-  // 触摸事件处理 - 简化版，移除双指缩放，依赖浏览器默认缩放
-  const handleTouchStart = (e: React.TouchEvent) => {
-    // 只处理单指操作
-    if (e.touches.length !== 1) return;
-
-    const touch = e.touches[0];
-    touchStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now()
-    };
-
-    if (isEditMode) {
-      // 编辑模式：准备绘制
-      const coords = getCanvasCoordinatesFromTouch(touch);
-      if (coords) {
-        // 颜色替换模式：第1步选择源颜色
-        if (colorReplaceState?.isActive && colorReplaceState.step === 'selectSource') {
-          const cell = grid![coords.row][coords.col];
-          if (!cell.isExternal && onSelectSourceColor) {
-            onSelectSourceColor(cell.paletteColor);
-          }
-          return;
-        }
-
-        setIsDrawing(true);
-        executeTool(coords.row, coords.col);
-      }
-    } else {
-      // 浏览模式：准备拖拽
-      setIsDragging(true);
-      setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
-    }
-
-    lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    // 只处理单指操作
-    if (e.touches.length !== 1) return;
-
-    const touch = e.touches[0];
-
-    if (isEditMode && isDrawing) {
-      // 编辑模式：连续绘制
-      const coords = getCanvasCoordinatesFromTouch(touch);
-      if (coords && (currentTool === 'brush' || currentTool === 'eraser')) {
-        executeTool(coords.row, coords.col);
-      }
-    } else if (isDragging && lastTouchRef.current) {
-      // 拖拽移动
-      const dx = touch.clientX - lastTouchRef.current.x;
-      const dy = touch.clientY - lastTouchRef.current.y;
-      setPosition(prev => ({
-        x: prev.x + dx,
-        y: prev.y + dy,
-      }));
-      lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    setIsDragging(false);
-    setIsDrawing(false);
-    lastTouchRef.current = null;
-    touchStartRef.current = null;
-  };
-
   if (!grid) {
     return (
       <div className="flex items-center justify-center h-96 bg-gray-100 rounded-2xl">
@@ -394,9 +295,6 @@ export default function EditableCanvas({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
         onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         <div
           className="flex items-center justify-center w-full h-full"
