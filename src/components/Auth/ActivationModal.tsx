@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { KeyRound, AlertCircle, ExternalLink } from 'lucide-react';
 
-const PURCHASE_URL = 'https://example.com/buy'; // TODO: Replace with actual card platform URL
+const PURCHASE_URL = 'https://www.goofish.com/personal?spm=a21ybx.home.nav.1.4c053da6ZFTpm5';
 
 export const ActivationModal: React.FC = () => {
   const { activate } = useAuth();
