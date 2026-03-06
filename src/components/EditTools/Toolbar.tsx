@@ -37,6 +37,20 @@ export default function Toolbar({
 
       {isEditMode && (
         <>
+          {/* 批量替换工具使用提示 */}
+          {currentTool === 'replace' && !colorReplaceState?.isActive && (
+            <div className="mb-3 p-3 bg-amber-50 border-2 border-amber-300 rounded-lg">
+              <div className="text-sm font-semibold text-amber-800 mb-2">
+                💡 批量替换使用方法：
+              </div>
+              <ol className="text-xs text-amber-700 space-y-1 list-decimal list-inside">
+                <li>点击画布选择要替换的颜色</li>
+                <li>在调色盘中选择目标颜色</li>
+                <li>确认替换，完成颜色转换</li>
+              </ol>
+            </div>
+          )}
+
           {/* 颜色替换状态提示 */}
           {colorReplaceState?.isActive && (
             <div className="mb-3 p-3 bg-blue-50 border-2 border-blue-300 rounded-lg">

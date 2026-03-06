@@ -267,10 +267,10 @@ function drawCoordinates(
  */
 function calculateStatsHeight(colorStats: ColorStat[]): number {
   const headerHeight = 140;
-  const rowHeight = 100; // 进一步增加行高以适配更大的文字和间距
-  const columns = 2; // 改为2列以增加可读性
+  const rowHeight = 100; // 保持行高不变
+  const columns = 6; // 改为6列
   const rows = Math.ceil(colorStats.length / columns);
-  const watermarkHeight = 100; // 添加水印区域高度
+  const watermarkHeight = 100;
   return headerHeight + rows * rowHeight + 80 + watermarkHeight;
 }
 
@@ -304,20 +304,20 @@ function drawStats(
   ctx.fillStyle = '#6B7280';
   ctx.fillText(`总计: ${totalBeads} 颗 | 共 ${colorStats.length} 种颜色`, width / 2, startY + 120);
 
-  // 绘制颜色列表（2列布局以增加可读性）
-  const columns = 2;
+  // 绘制颜色列表（6列布局）
+  const columns = 6;
   const columnWidth = (width - padding * 2) / columns;
-  const rowHeight = 100; // 进一步增加行高
-  const colorBlockSize = 70; // 进一步增大色块
+  const rowHeight = 100; // 保持行高不变
+  const colorBlockSize = 70; // 保持色块大小不变
   let currentY = startY + 160;
 
   colorStats.forEach((stat, index) => {
     const col = index % columns;
     const row = Math.floor(index / columns);
-    const x = padding + col * columnWidth + 25; // 增加左边距
+    const x = padding + col * columnWidth + 10; // 减小左边距以适应6列
     const y = currentY + row * rowHeight;
 
-    // 绘制颜色方块 - 更大
+    // 绘制颜色方块 - 保持大小
     ctx.fillStyle = stat.paletteColor.hex;
     ctx.fillRect(x, y, colorBlockSize, colorBlockSize);
     ctx.strokeStyle = '#D1D5DB';

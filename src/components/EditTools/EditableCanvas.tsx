@@ -402,8 +402,12 @@ export default function EditableCanvas({
       {/* 画布容器 */}
       <div
         ref={containerRef}
-        className="overflow-hidden bg-gray-50 rounded-xl border-2 border-gray-200 touch-none"
-        style={{ height: '70vh', cursor: cursorStyle }}
+        className="overflow-hidden bg-gray-50 rounded-xl border-2 border-gray-200"
+        style={{
+          height: '70vh',
+          cursor: cursorStyle,
+          touchAction: 'none', // 禁用浏览器默认的触摸手势
+        }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

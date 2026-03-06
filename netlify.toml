@@ -9,3 +9,10 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# 站点配置
+[context.production]
+  command = "npm run build"
+
+[context.deploy-preview]
+  command = "npm run build"
