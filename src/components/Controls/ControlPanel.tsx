@@ -101,13 +101,6 @@ export default function ControlPanel({
               onGridSizeChange(num);
             }
           }}
-          onBlur={() => {
-            // 失焦时如果为空或超出范围，恢复为当前实际值
-            const num = Number(gridSizeInput);
-            if (gridSizeInput === '' || num < 10 || num > 300) {
-              setGridSizeInput(String(gridSize));
-            }
-          }}
           disabled={disabled}
           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
         />
@@ -136,13 +129,6 @@ export default function ControlPanel({
             // 只有在范围内才更新实际值
             if (num >= 0 && num <= 100) {
               onMergeThresholdChange(num);
-            }
-          }}
-          onBlur={() => {
-            // 失焦时如果为空或超出范围，恢复为当前实际值
-            const num = Number(mergeThresholdInput);
-            if (mergeThresholdInput === '' || num < 0 || num > 100) {
-              setMergeThresholdInput(String(mergeThreshold));
             }
           }}
           disabled={disabled}
