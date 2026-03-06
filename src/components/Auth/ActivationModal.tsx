@@ -53,20 +53,20 @@ export const ActivationModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full my-auto">
         {/* Logo/Icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
-            <KeyRound className="w-10 h-10 text-white" />
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+            <KeyRound className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">
           山椒爱拼豆
         </h1>
-        <p className="text-center text-gray-600 mb-8">
+        <p className="text-sm sm:text-base text-center text-gray-600 mb-6 sm:mb-8">
           拼豆图纸生成工具
         </p>
 
@@ -83,7 +83,7 @@ export const ActivationModal: React.FC = () => {
               onChange={handleInputChange}
               placeholder="SJ-XXXX-XXXX-XXXX"
               maxLength={17}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-center text-lg font-mono tracking-wider"
+              className="w-full px-3 py-3 sm:px-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-center text-base sm:text-lg font-mono tracking-wider"
               disabled={loading}
             />
           </div>

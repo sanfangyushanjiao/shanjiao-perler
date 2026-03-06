@@ -2,6 +2,7 @@ import type { MappedPixel, BrandName, ColorStat } from '../types';
 
 /**
  * 导出完整的拼豆图纸（图像 + 统计）为 PNG
+ * 移动端优化：支持直接保存到相册
  */
 export function exportPatternImage(
   grid: MappedPixel[][],
@@ -46,16 +47,80 @@ export function exportPatternImage(
   const statsY = offsetY + M * cellSize + padding + coordinateMargin;
   drawStats(ctx, colorStats, statsY, canvas.width, padding);
 
+  // 检测是否为移动设备
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   // 下载图片
   canvas.toBlob((blob) => {
     if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+
+    if (isMobile) {
+      // 移动端：尝试使用 Share API 或直接下载
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+        // 支持 Web Share API Level 2 (文件分享)
+        const file = new File([blob], filename, { type: 'image/png' });
+        navigator.share({
+          files: [file],
+          title: '拼豆图纸',
+          text: '山椒爱拼豆图纸'
+        }).catch(err => {
+          console.log('分享失败，使用下载方式:', err);
+          downloadBlob(blob, filename);
+        });
+      } else {
+        // 不支持分享，直接下载（某些移动浏览器会提示保存到相册）
+        downloadBlob(blob, filename);
+
+        // 显示提示信息
+        showMobileSaveTip();
+      }
+    } else {
+      // PC端：直接下载
+      downloadBlob(blob, filename);
+    }
   });
+}
+
+/**
+ * 下载 Blob 对象
+ */
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * 显示移动端保存提示
+ */
+function showMobileSaveTip() {
+  const tip = document.createElement('div');
+  tip.textContent = '💡 提示：图片已下载，长按图片可保存到相册';
+  tip.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    max-width: 80%;
+    text-align: center;
+  `;
+  document.body.appendChild(tip);
+
+  setTimeout(() => {
+    tip.style.opacity = '0';
+    tip.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => document.body.removeChild(tip), 300);
+  }, 3000);
 }
 
 /**
@@ -189,16 +254,16 @@ function drawCoordinates(
  * 计算统计区域高度
  */
 function calculateStatsHeight(colorStats: ColorStat[]): number {
-  const headerHeight = 80;
-  const rowHeight = 40;
-  const columns = 3;
+  const headerHeight = 120;
+  const rowHeight = 80; // 增加行高以适配更大的文字
+  const columns = 2; // 改为2列以增加可读性
   const rows = Math.ceil(colorStats.length / columns);
-  const watermarkHeight = 50; // 添加水印区域高度
-  return headerHeight + rows * rowHeight + 40 + watermarkHeight;
+  const watermarkHeight = 80; // 添加水印区域高度
+  return headerHeight + rows * rowHeight + 60 + watermarkHeight;
 }
 
 /**
- * 绘制统计信息
+ * 绘制统计信息（移动端优化）
  */
 function drawStats(
   ctx: CanvasRenderingContext2D,
@@ -209,61 +274,61 @@ function drawStats(
 ) {
   // 绘制分隔线
   ctx.strokeStyle = '#E5E7EB';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(padding, startY);
   ctx.lineTo(width - padding, startY);
   ctx.stroke();
 
-  // 绘制统计标题
+  // 绘制统计标题 - 更大字体
   ctx.fillStyle = '#1F2937';
-  ctx.font = 'bold 28px sans-serif';
+  ctx.font = 'bold 48px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('颜色统计', width / 2, startY + 40);
+  ctx.fillText('颜色统计', width / 2, startY + 60);
 
-  // 计算总珠子数
+  // 计算总珠子数 - 更大字体
   const totalBeads = colorStats.reduce((sum, stat) => sum + stat.count, 0);
-  ctx.font = '20px sans-serif';
+  ctx.font = '32px sans-serif';
   ctx.fillStyle = '#6B7280';
-  ctx.fillText(`总计: ${totalBeads} 颗`, width / 2, startY + 70);
+  ctx.fillText(`总计: ${totalBeads} 颗 | 共 ${colorStats.length} 种颜色`, width / 2, startY + 105);
 
-  // 绘制颜色列表（3列布局）
-  const columns = 3;
+  // 绘制颜色列表（2列布局以增加可读性）
+  const columns = 2;
   const columnWidth = (width - padding * 2) / columns;
-  const rowHeight = 40;
-  const colorBlockSize = 30;
-  let currentY = startY + 100;
+  const rowHeight = 80; // 增加行高
+  const colorBlockSize = 60; // 增大色块
+  let currentY = startY + 140;
 
   colorStats.forEach((stat, index) => {
     const col = index % columns;
     const row = Math.floor(index / columns);
-    const x = padding + col * columnWidth;
+    const x = padding + col * columnWidth + 20; // 增加左边距
     const y = currentY + row * rowHeight;
 
-    // 绘制颜色方块
+    // 绘制颜色方块 - 更大
     ctx.fillStyle = stat.paletteColor.hex;
     ctx.fillRect(x, y, colorBlockSize, colorBlockSize);
     ctx.strokeStyle = '#D1D5DB';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeRect(x, y, colorBlockSize, colorBlockSize);
 
-    // 绘制色号
+    // 绘制色号 - 更大字体
     ctx.fillStyle = '#1F2937';
-    ctx.font = 'bold 16px sans-serif';
+    ctx.font = 'bold 28px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(stat.code, x + colorBlockSize + 10, y + 12);
+    ctx.fillText(stat.code, x + colorBlockSize + 15, y + 22);
 
-    // 绘制数量
-    ctx.font = '14px sans-serif';
+    // 绘制数量 - 更大字体
+    ctx.font = '24px sans-serif';
     ctx.fillStyle = '#6B7280';
-    ctx.fillText(`${stat.count} 颗`, x + colorBlockSize + 10, y + 28);
+    ctx.fillText(`${stat.count} 颗`, x + colorBlockSize + 15, y + 50);
   });
 
-  // 绘制底部水印
+  // 绘制底部水印 - 更大字体
   const rows = Math.ceil(colorStats.length / columns);
-  const watermarkY = currentY + rows * rowHeight + 30;
+  const watermarkY = currentY + rows * rowHeight + 50;
   ctx.fillStyle = '#9CA3AF';
-  ctx.font = '18px sans-serif';
+  ctx.font = '28px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('@山椒爱拼豆', width / 2, watermarkY);
 }
