@@ -19,6 +19,20 @@ export default function Toolbar({
     { type: 'replace', label: '批量替换', icon: '🔄' },
   ];
 
+  // 点击批量替换工具时，自动激活替换模式
+  const handleToolChange = (toolType: ToolType) => {
+    onToolChange(toolType);
+
+    // 如果选择批量替换工具且替换模式未激活，自动激活
+    if (toolType === 'replace' && !colorReplaceState?.isActive && onToggleColorReplace) {
+      onToggleColorReplace();
+    }
+    // 如果切换到其他工具且替换模式已激活，自动取消
+    else if (toolType !== 'replace' && colorReplaceState?.isActive && onToggleColorReplace) {
+      onToggleColorReplace();
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-4">
       <div className="flex items-center justify-between mb-4">
@@ -83,7 +97,7 @@ export default function Toolbar({
             {tools.map((tool) => (
               <button
                 key={tool.type}
-                onClick={() => onToolChange(tool.type)}
+                onClick={() => handleToolChange(tool.type)}
                 className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
                   currentTool === tool.type
                     ? 'border-primary bg-primary/10'

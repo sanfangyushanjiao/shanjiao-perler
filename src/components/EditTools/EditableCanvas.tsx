@@ -39,7 +39,9 @@ export default function EditableCanvas({
   // 触摸交互状态
   const [initialPinchDistance, setInitialPinchDistance] = useState<number | null>(null);
   const [initialScale, setInitialScale] = useState(1);
+  const [pinchCenter, setPinchCenter] = useState<{ x: number; y: number } | null>(null);
   const lastTouchRef = useRef<{ x: number; y: number } | null>(null);
+  const isScalingRef = useRef(false);
 
   // 绘制画布
   useEffect(() => {
@@ -277,10 +279,15 @@ export default function EditableCanvas({
     if (e.touches.length === 2) {
       // 双指缩放
       const distance = getTouchDistance(e.touches);
+      const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
       setInitialPinchDistance(distance);
       setInitialScale(scale);
+      setPinchCenter({ x: centerX, y: centerY });
       setIsDragging(false);
       setIsDrawing(false);
+      isScalingRef.current = true;
     } else if (e.touches.length === 1) {
       const touch = e.touches[0];
 
@@ -313,12 +320,16 @@ export default function EditableCanvas({
   const handleTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
 
-    if (e.touches.length === 2 && initialPinchDistance !== null) {
-      // 双指缩放
+    if (e.touches.length === 2 && initialPinchDistance !== null && isScalingRef.current) {
+      // 双指缩放 - 使用节流避免频繁更新
       const distance = getTouchDistance(e.touches);
       const scaleChange = distance / initialPinchDistance;
       const newScale = Math.max(0.1, Math.min(initialScale * scaleChange, 3));
-      setScale(newScale);
+
+      // 只在缩放变化超过阈值时更新（减少闪烁）
+      if (Math.abs(newScale - scale) > 0.01) {
+        setScale(newScale);
+      }
     } else if (e.touches.length === 1) {
       const touch = e.touches[0];
 
@@ -328,7 +339,7 @@ export default function EditableCanvas({
         if (coords && (currentTool === 'brush' || currentTool === 'eraser')) {
           executeTool(coords.row, coords.col);
         }
-      } else if (isDragging && lastTouchRef.current) {
+      } else if (isDragging && lastTouchRef.current && !isScalingRef.current) {
         // 拖拽移动
         const dx = touch.clientX - lastTouchRef.current.x;
         const dy = touch.clientY - lastTouchRef.current.y;
@@ -346,10 +357,14 @@ export default function EditableCanvas({
       setIsDragging(false);
       setIsDrawing(false);
       setInitialPinchDistance(null);
+      setPinchCenter(null);
       lastTouchRef.current = null;
+      isScalingRef.current = false;
     } else if (e.touches.length === 1) {
       // 从双指变为单指，重置拖拽起点
       setInitialPinchDistance(null);
+      setPinchCenter(null);
+      isScalingRef.current = false;
       const touch = e.touches[0];
       lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
     }

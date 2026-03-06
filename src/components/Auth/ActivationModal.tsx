@@ -54,7 +54,7 @@ export const ActivationModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-10 max-w-md lg:max-w-2xl w-full my-auto">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 max-w-sm sm:max-w-md lg:max-w-3xl w-full my-auto">
         {/* Logo/Icon */}
         <div className="flex justify-center mb-4 sm:mb-6">
           <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
