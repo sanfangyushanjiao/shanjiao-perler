@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import type { BrandName, PixelationMode } from '../../types';
 
 interface ControlPanelProps {
@@ -36,6 +37,19 @@ export default function ControlPanel({
   onApplyParameters,
   disabled = false,
 }: ControlPanelProps) {
+  // 使用本地状态管理输入框显示值，允许空白状态
+  const [gridSizeInput, setGridSizeInput] = useState(String(gridSize));
+  const [mergeThresholdInput, setMergeThresholdInput] = useState(String(mergeThreshold));
+
+  // 当外部值变化时同步更新显示值
+  useEffect(() => {
+    setGridSizeInput(String(gridSize));
+  }, [gridSize]);
+
+  useEffect(() => {
+    setMergeThresholdInput(String(mergeThreshold));
+  }, [mergeThreshold]);
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
       <h2 className="text-2xl font-bold text-gray-800">控制面板</h2>
@@ -71,15 +85,21 @@ export default function ControlPanel({
           type="text"
           inputMode="numeric"
           id="gridSizeInput"
-          value={gridSize}
+          value={gridSizeInput}
           onChange={(e) => {
             const value = e.target.value.replace(/[^0-9]/g, '');
+            setGridSizeInput(value);
             if (value === '') {
-              // 允许清空，传递空字符串对应的最小值
-              onGridSizeChange(10);
-            } else {
-              const num = Math.max(10, Math.min(300, Number(value)));
-              onGridSizeChange(num);
+              // 保持空白，不更新实际值
+              return;
+            }
+            const num = Math.max(10, Math.min(300, Number(value)));
+            onGridSizeChange(num);
+          }}
+          onBlur={() => {
+            // 失焦时如果为空，恢复为当前实际值
+            if (gridSizeInput === '') {
+              setGridSizeInput(String(gridSize));
             }
           }}
           onFocus={(e) => e.target.select()}
@@ -97,15 +117,21 @@ export default function ControlPanel({
           type="text"
           inputMode="numeric"
           id="mergeThresholdInput"
-          value={mergeThreshold}
+          value={mergeThresholdInput}
           onChange={(e) => {
             const value = e.target.value.replace(/[^0-9]/g, '');
+            setMergeThresholdInput(value);
             if (value === '') {
-              // 允许清空，传递0
-              onMergeThresholdChange(0);
-            } else {
-              const num = Math.max(0, Math.min(100, Number(value)));
-              onMergeThresholdChange(num);
+              // 保持空白，不更新实际值
+              return;
+            }
+            const num = Math.max(0, Math.min(100, Number(value)));
+            onMergeThresholdChange(num);
+          }}
+          onBlur={() => {
+            // 失焦时如果为空，恢复为当前实际值
+            if (mergeThresholdInput === '') {
+              setMergeThresholdInput(String(mergeThreshold));
             }
           }}
           onFocus={(e) => e.target.select()}
