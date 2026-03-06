@@ -143,14 +143,24 @@ function App() {
   }, []);
 
   const handleApplyParameters = useCallback(() => {
-    const clampedGridSize = Math.max(10, Math.min(300, tempGridSize || 50));
-    const clampedMergeThreshold = Math.max(0, Math.min(100, tempMergeThreshold || 0));
+    // 检查并重置超出范围的值为默认值
+    let finalGridSize = tempGridSize;
+    let finalMergeThreshold = tempMergeThreshold;
 
-    setTempGridSize(clampedGridSize);
-    setTempMergeThreshold(clampedMergeThreshold);
+    // 网格尺寸：超出范围则重置为50
+    if (tempGridSize < 10 || tempGridSize > 300) {
+      finalGridSize = 50;
+      setTempGridSize(50);
+    }
 
-    const gridSizeChanged = clampedGridSize !== configState.gridSize;
-    const thresholdChanged = clampedMergeThreshold !== configState.mergeThreshold;
+    // 颜色数量控制：超出范围则重置为0
+    if (tempMergeThreshold < 0 || tempMergeThreshold > 100) {
+      finalMergeThreshold = 0;
+      setTempMergeThreshold(0);
+    }
+
+    const gridSizeChanged = finalGridSize !== configState.gridSize;
+    const thresholdChanged = finalMergeThreshold !== configState.mergeThreshold;
 
     if (!gridSizeChanged && !thresholdChanged) {
       return;
@@ -158,15 +168,15 @@ function App() {
 
     setConfigState((prev) => ({
       ...prev,
-      gridSize: clampedGridSize,
-      mergeThreshold: clampedMergeThreshold,
+      gridSize: finalGridSize,
+      mergeThreshold: finalMergeThreshold,
     }));
 
     if (gridSizeChanged && imageState.originalImage && canvasRef.current) {
       const { N, M } = calculateGridSize(
         imageState.originalImage.width,
         imageState.originalImage.height,
-        clampedGridSize
+        finalGridSize
       );
 
       setIsProcessing(true);
@@ -175,8 +185,8 @@ function App() {
           let grid = await imageProcessor.pixelate(canvasRef.current!, N, M, palette, configState.mode);
           setRawGrid(grid);
 
-          if (clampedMergeThreshold > 0) {
-            grid = await imageProcessor.processMergeColors(grid, clampedMergeThreshold);
+          if (finalMergeThreshold > 0) {
+            grid = await imageProcessor.processMergeColors(grid, finalMergeThreshold);
           }
 
           if (excludedColors.size > 0) {
@@ -201,7 +211,7 @@ function App() {
       setIsProcessing(true);
       (async () => {
         try {
-          let grid = await imageProcessor.processMergeColors(rawGrid, clampedMergeThreshold);
+          let grid = await imageProcessor.processMergeColors(rawGrid, finalMergeThreshold);
 
           if (excludedColors.size > 0) {
             grid = removeNoiseColors(grid, excludedColors, palette);
