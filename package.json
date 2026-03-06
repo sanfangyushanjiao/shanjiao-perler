@@ -17,7 +17,9 @@
     "gen:codes:24h": "tsx scripts/generate-codes.ts --type 24h --count 100",
     "gen:codes:7d": "tsx scripts/generate-codes.ts --type 7d --count 50",
     "gen:codes:lifetime": "tsx scripts/generate-codes.ts --type lifetime --count 20",
-    "check:codes": "tsx scripts/check-codes.ts"
+    "check:codes": "tsx scripts/check-codes.ts",
+    "convert:dujiaoka": "tsx scripts/convert-for-dujiaoka.ts",
+    "split:codes": "tsx scripts/split-codes.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
