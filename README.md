@@ -2,7 +2,7 @@
 
 > 上传图片，一键生成拼豆图纸
 
-[![部署状态](https://img.shields.io/badge/部署-成功-brightgreen)](https://shanjiao-perler.vercel.app)
+[![部署状态](https://img.shields.io/badge/部署-成功-brightgreen)](https://shanjiao-perler.netlify.app)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 🔐 激活系统
@@ -66,7 +66,7 @@
 
 ## 🚀 在线使用
 
-访问：[https://shanjiao-perler.vercel.app](https://shanjiao-perler.vercel.app)
+访问：[https://shanjiao-perler.netlify.app](https://shanjiao-perler.netlify.app)
 
 **注意**: 需要激活码才能使用，请联系购买。
 
